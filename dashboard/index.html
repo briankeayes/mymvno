@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyMVNO — Activation Dashboard (Demo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050a18;
+      --bg-elev: #0d1528;
+      --bg-card: rgba(255,255,255,0.045);
+      --border: rgba(255,255,255,0.09);
+      --text: #f0f2f8;
+      --text-dim: #8b94ab;
+      --text-muted: #5a6580;
+      --accent: #00d2b4;
+      --accent-dim: rgba(0,210,180,0.15);
+      --accent-2: #6c5ce7;
+      --accent-3: #0984e3;
+      --success: #00d68f;
+      --sans: "Inter", system-ui, sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+      --radius: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% -10%, black, transparent);
+    }
+
+    .topnav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.65rem 1.25rem;
+      background: rgba(5,10,24,0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-weight: 700; font-size: 1.1rem; color: var(--text); text-decoration: none; }
+    .logo span { font-weight: 500; color: var(--text-dim); }
+    .badge {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.3rem 0.65rem; border-radius: 6px;
+      background: rgba(108,92,231,0.2); color: #c4b5fd;
+    }
+    .topnav-links { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
+    .muted { font-size: 0.74rem; color: var(--text-muted); margin-right: 0.75rem; }
+    .link-btn {
+      font-family: inherit; font-size: 0.78rem; font-weight: 600;
+      padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+      text-decoration: none;
+    }
+    .link-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    main {
+      padding: 4rem 1.25rem 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative; z-index: 1;
+    }
+
+    main h1 {
+      font-family: var(--serif); font-weight: 400; font-size: 1.75rem;
+      margin-bottom: 0.35rem;
+    }
+    main .subtitle { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 1.25rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.95fr);
+      gap: 1rem;
+      align-items: start;
+      min-height: calc(100vh - 140px);
+    }
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .detail-panel { position: sticky; bottom: 0; }
+    }
+
+    .dash-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+    .kpi {
+      padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .kpi .v { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+    .kpi .v.acc { color: var(--accent); }
+    .kpi .l { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 0.35rem; }
+
+    .table-card {
+      border-radius: var(--radius); border: 1px solid var(--border);
+      overflow: auto; background: var(--bg-elev);
+      max-height: min(70vh, 640px);
+    }
+
+    table.dash-table {
+      width: 100%; border-collapse: collapse; font-size: 0.78rem;
+    }
+    .dash-table th {
+      text-align: left; padding: 0.65rem 0.85rem;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.65rem;
+      position: sticky; top: 0; z-index: 2;
+    }
+    .dash-table td { padding: 0.72rem 0.85rem; border-top: 1px solid var(--border); color: var(--text-dim); }
+    .dash-table tbody tr {
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .dash-table tbody tr:hover { background: rgba(255,255,255,0.035); }
+    .dash-table tbody tr.selected {
+      background: var(--accent-dim);
+      outline: 1px solid rgba(0,210,180,0.35);
+      outline-offset: -1px;
+    }
+
+    .status-dot {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-weight: 600; font-size: 0.72rem;
+    }
+    .status-dot .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .st-live .dot { background: var(--accent-3); box-shadow: 0 0 8px var(--accent-3); }
+    .st-live { color: #7ecfff; }
+    .st-done .dot { background: var(--success); box-shadow: 0 0 8px rgba(0,214,143,0.45); }
+    .st-done { color: var(--success); }
+    .st-draft .dot { background: var(--text-muted); }
+
+    .mono { font-family: ui-monospace, monospace; font-size: 0.76rem; color: var(--text); }
+
+    .detail-panel {
+      border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 1.35rem;
+      height: fit-content;
+      max-height: min(74vh, 680px);
+      overflow-y: auto;
+    }
+
+    .detail-panel h2 {
+      font-family: var(--serif); font-weight: 400; font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .detail-empty {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--text-muted); font-size: 0.88rem;
+    }
+
+    dl.detail-grid {
+      display: grid;
+      gap: 0.85rem 1.25rem;
+      grid-template-columns: auto minmax(0, 1fr);
+      margin-top: 1rem;
+    }
+    dl.detail-grid dt {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    dd {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      word-break: break-word;
+    }
+    dd strong { color: var(--text); font-weight: 600; }
+
+    .detail-section {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .detail-section:first-of-type {
+      margin-top: 1rem;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .empty-msg { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <header class="topnav">
+    <a class="logo" href="mymvno-whitelabel-demo.html">My<span>MVNO</span></a>
+    <span class="badge">Dashboard demo</span>
+    <div class="topnav-links">
+      <span id="sync-hint" class="muted">Synced from activation tab</span>
+      <a class="link-btn" href="mymvno-whitelabel-demo.html">Open activation</a>
+    </div>
+  </header>
+
+  <main>
+    <h1>Activation dashboard</h1>
+
+    <div class="dash-kpis">
+      <div class="kpi"><div class="v acc" id="kpi-live">—</div><div class="l">In progress</div></div>
+      <div class="kpi"><div class="v" id="kpi-done">—</div><div class="l">Completed</div></div>
+      <div class="kpi"><div class="v" id="kpi-stuck">—</div><div class="l">Funnel attention</div></div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="table-card">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Stage</th>
+                <th>Subs</th>
+                <th>Customer</th>
+                <th>Updated</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dash-rows"></tbody>
+          </table>
+          <div class="empty-msg" id="dash-empty" hidden>No rows — run the activation demo to create sessions.</div>
+        </div>
+      </div>
+
+      <aside class="detail-panel" id="detail-panel">
+        <h2 id="detail-title">Session detail</h2>
+        <p class="subtitle" style="margin:0">Select a row in the table</p>
+        <div id="detail-body" class="detail-empty">
+          Telemetry (ICCID/profile, routing, billing hints) appears here when live data is captured from the activation UI.
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    const MYMVO_STORAGE_KEY = 'mymvnoDemo_dashboardRows_v2';
+
+    /** @typedef {{ sessionId:string, stage:string, subs:string, customer:string, status:'live'|'done'|'draft', orderNo:string|null, ts:string, details?: Record<string,string|boolean>} } DashRow */
+
+    const FALLBACK_ROWS = /** @type {DashRow[]} */ ([
+      {
+        sessionId: 'sess_7k2xq9',
+        stage: 'Payment',
+        subs: 'SIM',
+        customer: 'A. Kumar',
+        status: 'live',
+        orderNo: null,
+        ts: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
+        details: {
+          substrate: 'SIM',
+          iccidProfile: '8925300000040000316',
+          numberType: 'Port-in',
+          phone: '0412 345 678',
+          portArn: 'ARN7788991122',
+          email: 'a.kumar@example.com.au',
+          firstName: 'Arun',
+          lastName: 'Kumar',
+          dob: '1991-03-15',
+          basePlan: '$39 5G Mobile Plan — 75GB',
+          msisdn: '0412 345 678',
+          paymentMasked: '4242 ···· 4242',
+          consentCis: true,
+          consentDd: false,
+        },
+      },
+      {
+        sessionId: 'sess_m4nqp1',
+        stage: 'Complete',
+        subs: 'eSIM',
+        customer: 'S. Okafor',
+        status: 'done',
+        orderNo: 'MVNO-ORD-882401',
+        ts: new Date(Date.now() - 26 * 60 * 1000).toISOString(),
+        details: {
+          substrate: 'eSIM',
+          iccidProfile: 'ESIM-PROFILE-DEMO-A7',
+          eid: '89049032031001450090000123456',
+          numberType: 'New number',
+          phone: '0493 281 442',
+          email: 's.okafor@demo.com.au',
+          firstName: 'Sade',
+          lastName: 'Okafor',
+          dob: '1994-11-22',
+          basePlan: '$59 5G Mobile Plan — 175GB',
+          msisdn: '0493 281 442',
+          paymentMasked: '5105 ···· 5100',
+          consentCis: true,
+          consentDd: true,
+        },
+      },
+    ]);
+
+    /** @type {DashRow[]} */
+    let rows = [];
+
+    /** @type {string | null} */
+    let selectedId = null;
+
+    let lastStorageRaw = '';
+
+    function saveSelection() {
+      try {
+        sessionStorage.setItem('mymvnoDemo_selectedSessionId', selectedId || '');
+      } catch (_) {}
+    }
+
+    function readSavedSelection() {
+      try {
+        const v = sessionStorage.getItem('mymvnoDemo_selectedSessionId');
+        return v && String(v).trim() ? String(v).trim() : null;
+      } catch (_) { return null; }
+    }
+
+    function kpis(rs) {
+      const live = rs.filter(r => r.status === 'live').length;
+      const done = rs.filter(r => r.status === 'done').length;
+      const stuck = rs.filter(r => !r.orderNo && r.status !== 'done' && /Payment|Consent/.test(String(r.stage))).length;
+      document.getElementById('kpi-live').textContent = String(live);
+      document.getElementById('kpi-done').textContent = String(done);
+      document.getElementById('kpi-stuck').textContent = String(Math.min(20, stuck || 2));
+    }
+
+    function escapeHtml(t) {
+      const d = document.createElement('div');
+      d.textContent = String(t ?? '');
+      return d.innerHTML;
+    }
+
+    function formatDetail(detail) {
+      if (!detail || typeof detail !== 'object') return '';
+
+      /** @type {Record<string,string>} */
+      const labels = {
+        substrate: 'Subscriber type',
+        iccidProfile: 'ICCID / profile ref',
+        eid: 'Handset EID',
+        numberType: 'Number routing',
+        phone: 'Contact mobile',
+        portArn: 'Port ARN',
+        email: 'Email',
+        firstName: 'First name',
+        lastName: 'Surname',
+        dob: 'Date of birth',
+        basePlan: 'Recharge plan',
+        msisdn: 'Selected MSISDN',
+        paymentMasked: 'Payment (masked)',
+        consentCis: 'CIS acknowledged',
+        consentDd: 'DD authorised',
+        demo: 'Note',
+      };
+
+      let html = '<dl class="detail-grid">';
+      for (const [k, raw] of Object.entries(detail)) {
+        const lbl = labels[k] || k;
+        const val = typeof raw === 'boolean' ? (raw ? 'Yes' : 'No') : String(raw ?? '—');
+        html += `<dt>${escapeHtml(lbl)}</dt><dd>${escapeHtml(val)}</dd>`;
+      }
+      html += '</dl>';
+      return html || '<p class="detail-empty">No extended fields captured yet.</p>';
+    }
+
+    function paintDetail(row) {
+      document.getElementById('detail-title').textContent = row ? row.sessionId : 'Session detail';
+      const sub = /** @type {HTMLElement} */ (document.querySelector('.detail-panel .subtitle'));
+      sub.textContent = row
+        ? `Updated ${new Date(row.ts).toLocaleString('en-AU')}`
+        : 'Select a row in the table';
+      const body = document.getElementById('detail-body');
+      if (!row) {
+        body.className = 'detail-empty';
+        body.innerHTML = 'Telemetry (ICCID/profile, routing, billing hints) appears here when captured from activation.';
+        return;
+      }
+
+      body.className = '';
+
+      let core = `
+        <div class="detail-section">
+          <dl class="detail-grid">
+            <dt>Stage</dt><dd><strong>${escapeHtml(row.stage)}</strong></dd>
+            <dt>Status</dt><dd><strong>${escapeHtml(row.status)}</strong></dd>
+            <dt>Subs</dt><dd>${escapeHtml(row.subs)}</dd>
+            <dt>Customer</dt><dd>${escapeHtml(row.customer)}</dd>
+            <dt>Order</dt><dd>${escapeHtml(row.orderNo || '(pending BSS)')}</dd>
+          </dl>
+        </div>`;
+
+      if (row.details && Object.keys(row.details).length > 0) {
+        core += `<div class="detail-section"><h3 style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-bottom:0.75rem;font-weight:700">Captured from wizard</h3>${formatDetail(row.details)}</div>`;
+      } else {
+        core += `<div class="detail-section"><p style="font-size:0.85rem;color:var(--text-muted)">No wizard snapshot for this session — interactions may pre-date detail syncing.</p></div>`;
+      }
+
+      body.innerHTML = core;
+    }
+
+    function renderTable() {
+      const raw = (() => {
+        try { return localStorage.getItem(MYMVO_STORAGE_KEY) || ''; } catch (_) { return ''; }
+      })();
+      rows = [];
+      try {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.rows)) rows = parsed.rows;
+        }
+      } catch (_) {}
+      if (!rows.length) rows = FALLBACK_ROWS.slice();
+
+      if (selectedId && !rows.some(r => r.sessionId === selectedId)) {
+        selectedId = rows[0]?.sessionId ?? null;
+      }
+      if (!selectedId && rows.length) selectedId = rows[0].sessionId;
+
+      kpis(rows);
+      const tb = /** @type {HTMLTableSectionElement} */ (document.getElementById('dash-rows'));
+      const empty = document.getElementById('dash-empty');
+      tb.innerHTML = '';
+
+      rows.slice().sort((a, b) => new Date(b.ts) - new Date(a.ts)).forEach(row => {
+        const tr = document.createElement('tr');
+        tr.dataset.dashSid = row.sessionId;
+        tr.classList.toggle('selected', selectedId === row.sessionId);
+        const stClass = row.status === 'done' ? 'st-done' : row.status === 'draft' ? 'st-draft' : 'st-live';
+        const lbl = row.status === 'done' ? 'COMPLETE' : row.status === 'draft' ? 'DRAFT' : 'IN FLIGHT';
+        const orderCell = row.orderNo ? `<span class="mono">${escapeHtml(row.orderNo)}</span>` : '<span style="opacity:0.55">Awaiting</span>';
+        tr.innerHTML = `
+          <td class="mono">${escapeHtml(row.sessionId)}</td>
+          <td>${escapeHtml(row.stage)}</td>
+          <td>${escapeHtml(row.subs)}</td>
+          <td>${escapeHtml(row.customer)}</td>
+          <td class="mono" style="font-size:0.7rem">${new Date(row.ts).toLocaleString('en-AU', { hour12: false })}</td>
+          <td><span class="status-dot ${stClass}"><span class="dot"></span>${lbl}</span><br>${orderCell}</td>
+        `;
+        tr.addEventListener('click', () => {
+          selectedId = row.sessionId;
+          saveSelection();
+          tb.querySelectorAll('tr').forEach(el => el.classList.remove('selected'));
+          tr.classList.add('selected');
+          paintDetail(row);
+        });
+        tb.appendChild(tr);
+      });
+
+      empty.hidden = rows.length > 0;
+
+      const sel = rows.find(r => r.sessionId === selectedId) || rows[0] || null;
+      paintDetail(sel);
+
+      try {
+        lastStorageRaw = localStorage.getItem(MYMVO_STORAGE_KEY) || '';
+      } catch (_) {}
+    }
+
+    function maybeRefreshFromStorage() {
+      let raw = '';
+      try { raw = localStorage.getItem(MYMVO_STORAGE_KEY) || ''; } catch (_) {}
+      if (raw === lastStorageRaw) return;
+      lastStorageRaw = raw;
+      renderTable();
+    }
+
+    try {
+      const q = new URLSearchParams(location.search).get('session');
+      if (q && String(q).trim()) selectedId = String(q).trim();
+    } catch (_) {}
+
+    selectedId = selectedId || readSavedSelection();
+
+    renderTable();
+
+    window.addEventListener('storage', (e) => {
+      if (e.key !== MYMVO_STORAGE_KEY) return;
+      lastStorageRaw = e.newValue || '';
+      renderTable();
+    });
+
+    setInterval(maybeRefreshFromStorage, 900);
+  })();
+  </script>
+</body>
+</html>

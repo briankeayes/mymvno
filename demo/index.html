@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyMVNO — Whitelabel UI Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050a18;
+      --bg-elev: #0d1528;
+      --bg-card: rgba(255,255,255,0.045);
+      --border: rgba(255,255,255,0.09);
+      --text: #f0f2f8;
+      --text-dim: #8b94ab;
+      --text-muted: #5a6580;
+      --accent: #00d2b4;
+      --accent-dim: rgba(0,210,180,0.15);
+      --accent-2: #6c5ce7;
+      --accent-3: #0984e3;
+      --danger: #ff6b6b;
+      --success: #00d68f;
+      --sans: "Inter", system-ui, sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+      --radius: 12px;
+      --sidebar-w: 280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% -10%, black, transparent);
+    }
+
+    /* Top bar */
+    .topnav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 1.25rem;
+      background: rgba(5,10,24,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.03em; color: var(--text); text-decoration: none; }
+    .logo span { font-weight: 500; color: var(--text-dim); }
+
+    .dash-link-top {
+      display: inline-flex; align-items: center; gap: 0.5rem; margin-left: auto;
+      font-family: inherit; font-size: 0.78rem; font-weight: 600;
+      padding: 0.45rem 1rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+    }
+    .dash-link-top:hover { border-color: var(--accent); color: var(--accent); }
+
+    .badge-demo {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.3rem 0.65rem; border-radius: 6px;
+      background: rgba(108,92,231,0.2); color: #c4b5fd;
+      margin-right: auto; margin-left: 1rem;
+    }
+    @media (max-width: 720px) { .badge-demo { display: none; } }
+
+    /* App layout */
+    .app {
+      padding-top: 52px;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: calc(100vh - 52px);
+      position: relative; z-index: 1;
+    }
+    @media (max-width: 900px) {
+      --sidebar-w: 100%;
+      .app { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, #0a1224 0%, var(--bg) 100%);
+      padding: 1.25rem 1rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        align-items: center;
+        border-right: none; border-bottom: 1px solid var(--border);
+        padding-bottom: 0.75rem;
+      }
+      .sidebar-title { display: none; }
+    }
+
+    .sidebar-title {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--text-muted); font-weight: 600; padding: 0 0.35rem;
+    }
+
+    .step-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    @media (max-width: 900px) {
+      .step-list { flex-direction: row; flex-wrap: nowrap; }
+    }
+
+    .step-li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px; cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    @media (min-width: 901px) { .step-li { white-space: normal; } }
+
+    .step-li:hover:not(.locked) { background: rgba(255,255,255,0.04); }
+    .step-li.active { background: var(--accent-dim); outline: 1px solid rgba(0,210,180,0.25); }
+    .step-li.done { opacity: 0.92; }
+    .step-li.locked { opacity: 0.4; cursor: not-allowed; }
+
+    .step-badge {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+      background: rgba(108,92,231,0.25); color: #c7d2fe;
+      margin-top: 1px;
+    }
+    .step-li.active .step-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg);
+    }
+    .step-li.done .step-badge { background: rgba(0,210,180,0.25); color: var(--accent); }
+
+    .step-text .t { font-size: 0.82rem; font-weight: 600; display: block; }
+    .step-text .d { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; line-height: 1.3; display: none; }
+    @media (min-width: 901px) { .step-text .d { display: block; } }
+
+    /* Main wizard */
+    .main {
+      display: flex; flex-direction: column;
+      min-height: calc(100vh - 52px);
+      padding: 1.25rem 1.5rem 2rem;
+    }
+
+    .main-toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+      justify-content: space-between; margin-bottom: 1rem;
+    }
+
+    .main-toolbar h1 {
+      font-family: var(--serif); font-weight: 400; font-size: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .toolbar-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+    .btn {
+      font-family: inherit; font-size: 0.8rem; font-weight: 600;
+      padding: 0.55rem 1.1rem; border-radius: 8px;
+      border: none; cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn--accent { background: var(--accent); color: var(--bg); }
+    .btn--accent:hover:not(:disabled) { box-shadow: 0 4px 20px rgba(0,210,180,0.35); transform: translateY(-1px); }
+    .btn--ghost {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .btn--ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+    .demo-status {
+      font-size: 0.75rem; color: var(--text-muted); max-width: 14rem;
+      line-height: 1.4;
+    }
+    .demo-status.run { color: var(--accent); font-weight: 500; }
+
+    .stage-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center;
+    }
+
+    .card {
+      max-width: 580px; width: 100%; margin: 0 auto;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.75rem 1.85rem;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    }
+
+    .card-h {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--accent); margin-bottom: 0.35rem;
+    }
+
+    .card-title {
+      font-family: var(--serif); font-weight: 400; font-size: 1.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-desc { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 1.25rem; line-height: 1.55; }
+
+    label.field-label {
+      display: block; font-size: 0.72rem; font-weight: 600;
+      color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%; padding: 0.65rem 0.85rem; border-radius: 8px;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.03);
+      color: var(--text); font-family: inherit; font-size: 0.9rem;
+      margin-bottom: 1rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    textarea { min-height: 72px; resize: vertical; }
+
+    .radio-row {
+      display: flex; gap: 0.65rem; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+
+    .chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1rem; border-radius: 999px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-dim); cursor: pointer;
+      font-size: 0.85rem; transition: border-color 0.2s, background 0.2s;
+    }
+    .chip:hover { border-color: var(--accent-2); }
+    .chip.on {
+      border-color: var(--accent); background: var(--accent-dim); color: var(--text);
+    }
+    .chip.inert { cursor: default; opacity: 0.5; pointer-events: none; }
+
+    .pill-row {
+      display: inline-flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;
+    }
+    .pill {
+      font-size: 0.74rem; font-weight: 600;
+      padding: 0.3rem 0.65rem; border-radius: 6px;
+      background: rgba(255,255,255,0.06); color: var(--text-dim);
+    }
+    .pill strong { color: var(--accent); font-weight: 700; }
+
+    .hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+
+    /* ── Plan picker: wide breakout grid ── */
+    .stage[data-stage="planpick"] {
+      max-width: 920px;
+    }
+
+    .plan-cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 860px) {
+      .plan-cards { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .plan-cards { grid-template-columns: 1fr 1fr; }
+    }
+
+    button.plan-option {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      padding: 1.35rem 0.9rem 1.1rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: linear-gradient(168deg, rgba(13,21,40,0.92) 0%, rgba(5,10,24,0.96) 100%);
+      color: var(--text);
+      transition: transform 0.22s ease, border-color 0.25s, box-shadow 0.3s, background 0.25s;
+      overflow: hidden;
+    }
+    button.plan-option::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: inherit;
+      background: radial-gradient(ellipse 90% 60% at 50% -20%, rgba(0,210,180,0.06), transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    button.plan-option:hover:not(:disabled)::before { opacity: 1; }
+    button.plan-option:hover:not(:disabled) {
+      border-color: rgba(108,92,231,0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4), 0 0 0 1px rgba(108,92,231,0.15);
+    }
+    button.plan-option.selected {
+      border-color: var(--accent);
+      background: linear-gradient(168deg, rgba(0,210,180,0.08) 0%, rgba(5,10,24,0.97) 100%);
+      box-shadow: 0 0 24px rgba(0,210,180,0.18), 0 0 0 1px rgba(0,210,180,0.25), 0 16px 40px rgba(0,0,0,0.35);
+      transform: translateY(-4px) scale(1.025);
+    }
+    button.plan-option.selected::before { opacity: 1; }
+    button.plan-option.selected::after {
+      content: '✓';
+      position: absolute; top: 0.55rem; right: 0.6rem;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent); color: var(--bg);
+      font-size: 0.65rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,210,180,0.4);
+    }
+    button.plan-option:disabled {
+      opacity: 0.55;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .plan-option .plan-badge {
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0 0 6px 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: var(--bg);
+      white-space: nowrap;
+    }
+
+    .plan-option .plan-price {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+    .plan-option .plan-price sup {
+      font-size: 0.55em; font-weight: 600; color: var(--text-dim);
+      vertical-align: super; margin-left: 0.1em;
+    }
+    .plan-option .plan-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.65rem;
+    }
+
+    .plan-option .plan-data {
+      display: inline-flex; align-items: baseline; justify-content: center; gap: 0.25rem;
+      margin-bottom: 0.55rem;
+    }
+    .plan-option .plan-data .val {
+      font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text);
+    }
+    .plan-option .plan-data .unit {
+      font-size: 0.75rem; font-weight: 600; color: var(--text-dim);
+    }
+
+    .plan-option .plan-features {
+      list-style: none; padding: 0; margin: 0 0 0.4rem;
+      display: flex; flex-direction: column; gap: 0.3rem; flex: 1;
+    }
+    .plan-option .plan-features li {
+      font-size: 0.68rem; color: var(--text-muted); line-height: 1.35;
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+    .plan-option .plan-features li::before {
+      content: ''; flex-shrink: 0;
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--accent-2);
+    }
+    .plan-option.selected .plan-features li::before {
+      background: var(--accent);
+    }
+
+    .plan-option .plan-network {
+      margin-top: auto; padding-top: 0.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.62rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .plan-option.selected .plan-network { color: var(--accent); }
+
+    .signature-box {
+      height: 140px; border-radius: 8px;
+      border: 2px dashed var(--border);
+      background: rgba(255,255,255,0.03);
+      position: relative; overflow: hidden; margin-bottom: 0.75rem;
+    }
+    .signature-line {
+      position: absolute; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      border-radius: 2px; opacity: 0;
+    }
+    .signature-line.draw { opacity: 0.95; animation: drawSig 2s ease forwards; }
+    @keyframes drawSig { from { width: 0%; } to { width: 78%; } }
+
+    .chk {
+      display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.75rem;
+      font-size: 0.85rem; color: var(--text-dim); cursor: pointer;
+    }
+    .chk input { margin-top: 3px; accent-color: var(--accent); }
+
+    .card-nav {
+      display: flex; gap: 0.65rem; justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+
+    .success-banner {
+      text-align: center; padding: 1.5rem 0 0;
+    }
+    .success-banner .big {
+      font-family: var(--serif); font-size: 2.5rem;
+      margin-bottom: 0.35rem;
+    }
+    .order-id {
+      display: inline-block; margin-top: 0.85rem;
+      padding: 0.5rem 1rem; border-radius: 8px;
+      font-family: ui-monospace, monospace; font-size: 1rem;
+      background: rgba(0,210,180,0.12); border: 1px solid rgba(0,210,180,0.35);
+      color: var(--accent);
+    }
+    .activation-status {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      margin-top: 1rem; padding: 0.45rem 1.1rem;
+      border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .activation-status .pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    .activation-status.pending {
+      background: rgba(255,190,50,0.12); border: 1px solid rgba(255,190,50,0.35);
+      color: #ffbe32;
+    }
+    .activation-status.pending .pulse { background: #ffbe32; }
+    .activation-status.active {
+      background: rgba(0,214,143,0.12); border: 1px solid rgba(0,214,143,0.35);
+      color: #00d68f;
+    }
+    .activation-status.active .pulse { background: #00d68f; }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    footer.demo-foot {
+      text-align: center; padding: 1.5rem;
+      font-size: 0.72rem; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+    footer.demo-foot strong { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topnav">
+    <a href="#" class="logo">My<span>MVNO</span></a>
+    <span class="badge-demo">Whitelabel demo</span>
+    <a class="dash-link-top" href="/dashboard/" target="_blank" rel="noopener" id="link-dashboard-top">Activation dashboard<span aria-hidden="true" style="opacity:0.5"> · ↗</span></a>
+  </header>
+
+  <div id="activation-app" class="app">
+    <aside class="sidebar" aria-label="Activation steps">
+      <div class="sidebar-title">Activation</div>
+      <ul class="step-list" id="step-list"></ul>
+    </aside>
+
+    <main class="main">
+      <div class="main-toolbar">
+        <h1 id="toolbar-title">Welcome</h1>
+        <div class="toolbar-btns">
+          <span class="demo-status" id="demo-status">Interactive demo — jump between steps anytime.</span>
+          <button type="button" class="btn btn--accent" id="btn-demo-run">Run demo activation</button>
+          <button type="button" class="btn btn--ghost" id="btn-reset">Reset</button>
+          <button type="button" class="btn btn--ghost" id="btn-dash-quick">Open dashboard</button>
+        </div>
+      </div>
+
+      <div class="stage-wrap" id="stages">
+
+        <!-- 0 Welcome -->
+        <div class="card stage" data-stage="welcome" hidden>
+          <span class="card-h">MyMVNO</span>
+          <h2 class="card-title"><em style="font-style:italic;color:var(--accent);">Activate</em> your service</h2>
+          <p class="card-desc">
+            You're on a branded MyMVNO activation flow supporting <strong>SIM</strong> and <strong>eSIM</strong>.
+            Continue to validate your subscription and secure your payment.
+          </p>
+          <div class="pill-row">
+            <span class="pill">SIM + <strong>eSIM</strong></span>
+            <span class="pill">AU · OTP porting · Quickstream-ready</span>
+          </div>
+        </div>
+
+        <!-- 1 Pick a plan -->
+        <div class="card stage" data-stage="planpick" hidden>
+          <span class="card-h">Step 2</span>
+          <h2 class="card-title">Pick your plan</h2>
+          <p class="card-desc">30-day prepaid tiers with unlimited data rollover on eligible plans. SIM or eSIM.</p>
+          <div class="plan-cards" id="plan-cards" role="radiogroup" aria-label="Recharge plan">
+            <button type="button" class="plan-option" data-price="23" role="radio" aria-checked="false">
+              <span class="plan-price">$23<sup>/mo</sup></span>
+              <span class="plan-name">Mobile</span>
+              <div class="plan-data"><span class="val">12</span><span class="unit">GB</span></div>
+              <ul class="plan-features">
+                <li>Unlimited AU calls &amp; SMS</li>
+                <li>Data rollover</li>
+                <li>SIM or eSIM</li>
+              </ul>
+              <div class="plan-network">4G · 100 Mbps</div>
+            </button>
+
+            <button type="button" class="plan-option" data-price="29" role="radio" aria-checked="false">
+              <span class="plan-price">$29<sup>/mo</sup></span>
+              <span class="plan-name">5G Mobile</span>
+              <div class="plan-data"><span class="val">29</span><span class="unit">GB</span></div>
+              <ul class="plan-features">
+                <li>Unlimited AU calls &amp; SMS</li>
+                <li>Intl calls to 20 countries</li>
+                <li>Data rollover</li>
+                <li>SIM or eSIM</li>
+              </ul>
+              <div class="plan-network">5G · 150 Mbps</div>
+            </button>
+
+            <button type="button" class="plan-option selected" data-price="39" role="radio" aria-checked="true">
+              <span class="plan-badge">Most popular</span>
+              <span class="plan-price">$39<sup>/mo</sup></span>
+              <span class="plan-name">5G Mobile</span>
+              <div class="plan-data"><span class="val">75</span><span class="unit">GB</span></div>
+              <ul class="plan-features">
+                <li>Unlimited AU calls &amp; SMS</li>
+                <li>Intl calls to 20 countries</li>
+                <li>200 min + 50 SMS to 30</li>
+                <li>Data rollover</li>
+                <li>SIM or eSIM</li>
+              </ul>
+              <div class="plan-network">5G · 150 Mbps</div>
+            </button>
+
+            <button type="button" class="plan-option" data-price="49" role="radio" aria-checked="false">
+              <span class="plan-price">$49<sup>/mo</sup></span>
+              <span class="plan-name">5G Mobile</span>
+              <div class="plan-data"><span class="val">120</span><span class="unit">GB</span></div>
+              <ul class="plan-features">
+                <li>Unlimited AU calls &amp; SMS</li>
+                <li>Intl calls to 20 countries</li>
+                <li>300 min + 50 SMS to 30</li>
+                <li>Data rollover</li>
+                <li>SIM or eSIM</li>
+              </ul>
+              <div class="plan-network">5G · 150 Mbps</div>
+            </button>
+
+            <button type="button" class="plan-option" data-price="59" role="radio" aria-checked="false">
+              <span class="plan-price">$59<sup>/mo</sup></span>
+              <span class="plan-name">5G Mobile</span>
+              <div class="plan-data"><span class="val">175</span><span class="unit">GB</span></div>
+              <ul class="plan-features">
+                <li>Unlimited AU calls &amp; SMS</li>
+                <li>Intl calls to 20 countries</li>
+                <li>400 min + 50 SMS to 30</li>
+                <li>Data rollover</li>
+                <li>SIM or eSIM</li>
+              </ul>
+              <div class="plan-network">5G · 250 Mbps</div>
+            </button>
+
+          </div>
+          <p class="hint" style="font-size:0.66rem;text-align:center;opacity:0.7;">Illustrative plan inclusions for demo purposes only</p>
+        </div>
+
+        <!-- 2 Substrate -->
+        <div class="card stage" data-stage="substrate" hidden>
+          <span class="card-h">Step 3</span>
+          <h2 class="card-title">SIM <span style="color:var(--text-dim);">or</span> eSIM?</h2>
+          <p class="card-desc">Choose how you'll connect — SIM ICCID validation or digital eSIM profile provisioning.</p>
+          <label class="field-label">Subs type</label>
+          <div class="radio-row" id="substrate-row">
+            <button type="button" class="chip" data-val="physical" aria-pressed="false">SIM card</button>
+            <button type="button" class="chip on" data-val="esim" aria-pressed="true">Digital eSIM</button>
+          </div>
+          <p class="hint" id="substrate-hint">eSIM skips printed ICCID entry — we'll bind the profile at order time.</p>
+        </div>
+
+        <!-- 3 Identifier -->
+        <div class="card stage" data-stage="identifier" hidden>
+          <span class="card-h">Step 4</span>
+          <h2 class="card-title" id="id-title">eSIM provisioning</h2>
+          <p class="card-desc" id="id-desc">We'll send the profile QR after number selection and consent.</p>
+          <label class="field-label" for="fld-iccid" id="lbl-iccid">ICCID</label>
+          <input id="fld-iccid" type="text" placeholder="892530000004000031612571" maxlength="22" autocomplete="off" />
+
+          <div id="esim-extra" hidden>
+            <label class="field-label" for="fld-eid">Device EID (optional)</label>
+            <input id="fld-eid" type="text" placeholder="8904903203100040000001234567890" maxlength="32" autocomplete="off" />
+            <span class="hint">Used only for handset compatibility messaging in this demo.</span>
+          </div>
+        </div>
+
+        <!-- 4 Number type -->
+        <div class="card stage" data-stage="numtype" hidden>
+          <span class="card-h">Step 5</span>
+          <h2 class="card-title">New number <span style="color:var(--text-dim);">or</span> port?</h2>
+          <p class="card-desc">Porting validates ownership with OTP in production.</p>
+          <label class="field-label">Number type</label>
+          <div class="radio-row" id="numtype-row">
+            <button type="button" class="chip on" data-val="new" aria-pressed="true">New number</button>
+            <button type="button" class="chip" data-val="port" aria-pressed="false">Port existing number</button>
+          </div>
+          <label class="field-label">Example mobile</label>
+          <input id="fld-phone" type="tel" maxlength="13" autocomplete="off" placeholder="04xx xxx xxx" />
+        </div>
+
+        <!-- 5 Account -->
+        <div class="card stage" data-stage="account" hidden>
+          <span class="card-h">Step 6</span>
+          <h2 class="card-title">Account details</h2>
+          <p class="card-desc">Billing and contact info for MyMVNO under your ACMA-aware retail.</p>
+
+          <label class="field-label" for="fld-first">Legal name</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
+            <input id="fld-first" type="text" placeholder="Jordan" autocomplete="given-name" />
+            <input id="fld-last" type="text" placeholder="Chen" autocomplete="family-name" />
+          </div>
+
+          <label class="field-label" for="fld-email">Email</label>
+          <input id="fld-email" type="email" autocomplete="email" placeholder="hello@demo.com.au" />
+
+          <label class="field-label" for="fld-dob">Date of birth</label>
+          <input id="fld-dob" type="text" placeholder="yyyy-mm-dd" autocomplete="off" />
+        </div>
+
+        <!-- 6 Number pick -->
+        <div class="card stage" data-stage="numberpick" hidden>
+          <span class="card-h">Step 7</span>
+          <h2 class="card-title">Choose your number</h2>
+          <p class="card-desc">Reserved ranges from BSS — simulated shortlist.</p>
+          <label class="field-label" for="fld-number">Preferred number</label>
+          <select id="fld-number">
+            <option value="">Select…</option>
+            <option value="0493281442">0493 281 442</option>
+            <option value="0411223344">0411 223 344</option>
+            <option value="0498765123">0498 765 123</option>
+          </select>
+          <label class="field-label">Port ARN (demo)</label>
+          <input id="fld-arn" type="text" placeholder="Only shown if porting — e.g. 123456789" disabled />
+        </div>
+
+        <!-- 7 Payment -->
+        <div class="card stage" data-stage="payment" hidden>
+          <span class="card-h">Step 8</span>
+          <h2 class="card-title">Payment method</h2>
+          <p class="card-desc">
+            Trusted iframe flows for Quickstream in production — this demo mocks tokenisation locally.
+          </p>
+          <label class="field-label">Card number</label>
+          <input id="fld-cc" type="text" maxlength="23" autocomplete="off" placeholder="●●●● ●●●● ●●●● 4242" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
+            <div><label class="field-label">Expiry</label><input id="fld-exp" type="text" placeholder="MM / YY" /></div>
+            <div><label class="field-label">CVV</label><input id="fld-cvv" type="text" maxlength="4" placeholder="●●●" /></div>
+          </div>
+          <label class="field-label">Name on card</label>
+          <input id="fld-cardname" type="text" autocomplete="off" placeholder="Jordan Chen" />
+        </div>
+
+        <!-- 8 Consent -->
+        <div class="card stage" data-stage="consent" hidden>
+          <span class="card-h">Step 9</span>
+          <h2 class="card-title">Consent & signature</h2>
+          <p class="card-desc">Direct debit mandate, CIS acknowledgement, signature capture.</p>
+          <label class="chk"><input type="checkbox" id="chk-cis"> I acknowledge the Critical Information Summary & service terms.</label>
+          <label class="chk"><input type="checkbox" id="chk-dd"> I authorise direct debit if bank account chosen.</label>
+          <label class="field-label">Digitised signature</label>
+          <div class="signature-box" aria-hidden="true">
+            <div class="signature-line" id="sig-line"></div>
+          </div>
+        </div>
+
+        <!-- 9 Result -->
+        <div class="card stage" data-stage="result" hidden>
+          <div class="success-banner">
+            <div class="big">Thank <span style="color:var(--accent);">you</span></div>
+            <p class="card-desc" style="margin-bottom:0;">Your account has been created. You’ll receive an email shortly once your service is activated, with next steps to get connected.</p>
+            <span class="order-id" id="order-id-display">MVNO‑ORD‑000000</span>
+            <br>
+            <span class="activation-status pending" id="activation-status"><span class="pulse"></span>Pending Activation</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="card-nav" aria-label="Step navigation">
+        <button type="button" class="btn btn--ghost" id="btn-prev">Back</button>
+        <button type="button" class="btn btn--accent" id="btn-next">Next</button>
+      </nav>
+    </main>
+  </div>
+
+  <footer class="demo-foot">
+    Interactive <strong>MyMVNO</strong> demo — no live API · <strong>Activation dashboard</strong> opens in a separate tab
+  </footer>
+
+  <script>
+(function () {
+  /** Must match notes/mymvno-dashboard-demo.html */
+  const DASH_ROWS_STORAGE_KEY = 'mymvnoDemo_dashboardRows_v2';
+
+  function loadDashRowsFromStorage() {
+    try {
+      const raw = localStorage.getItem(DASH_ROWS_STORAGE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.rows) && parsed.rows.length) {
+        dashRows = parsed.rows;
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function persistDashRows() {
+    try {
+      localStorage.setItem(DASH_ROWS_STORAGE_KEY, JSON.stringify({ rows: dashRows }));
+    } catch (_) {}
+  }
+
+  function openDashboardTab(sessionId) {
+    const u = sessionId
+      ? `/dashboard/?session=${encodeURIComponent(sessionId)}`
+      : '/dashboard/';
+    window.open(u, '_blank', 'noopener');
+  }
+
+  const STEPS = [
+    { key: 'welcome', title: 'Welcome', desc: 'Branded onboarding' },
+    { key: 'planpick', title: 'Pick a plan', desc: 'Prepaid tier' },
+    { key: 'substrate', title: 'SIM / eSIM', desc: 'Choose substrate' },
+    { key: 'identifier', title: 'Identifier', desc: 'ICCID or EID' },
+    { key: 'numtype', title: 'Number type', desc: 'New or port' },
+    { key: 'account', title: 'Account', desc: 'Contact & DOB' },
+    { key: 'numberpick', title: 'Number', desc: 'Pick MSISDN' },
+    { key: 'payment', title: 'Payment', desc: 'Secure token mock' },
+    { key: 'consent', title: 'Consent', desc: 'Sign & attest' },
+    { key: 'result', title: 'Confirmed', desc: 'Order ID' },
+  ];
+
+  
+  const PREPAID_PLAN_SUMMARY = /** @type {Record<string,string>} */ ({
+    '23': '$23 Mobile Plan — 12GB + rollover · 30 day · 4G · unlimited standard AU calls & SMS · 2,000 MMS · SIM or eSIM · 100Mbps cap',
+    '29': '$29 5G Mobile Plan — 29GB + rollover · 30 day · 5G · unlimited standard AU calls & SMS · unlimited standard international calls/SMS to 20 countries · 100 min & 50 SMS to 30 countries · SIM or eSIM · 150Mbps cap',
+    '39': '$39 5G Mobile Plan — 75GB + rollover · 30 day · 5G · unlimited standard AU calls & SMS · unlimited standard international calls/SMS to 20 countries · 200 min & 50 SMS to 30 · SIM or eSIM · 150Mbps cap',
+    '49': '$49 5G Mobile Plan — 120GB + rollover · 30 day · 5G · unlimited standard AU calls & SMS · unlimited standard international calls/SMS to 20 countries · 300 min & 50 SMS to 30 · SIM or eSIM · 150Mbps cap',
+    '59': '$59 5G Mobile Plan — 175GB + rollover · 30 day · 5G · unlimited standard AU calls & SMS · unlimited standard international calls/SMS to 20 countries · 400 min & 50 SMS to 30 · SIM or eSIM · 250Mbps cap',
+  });
+
+  /** @typedef {{ sessionId:string, stage:string, subs:string, customer:string, status:'live'|'done'|'draft', orderNo:string|null, ts:string, details?: Record<string,string|boolean> }} DashRow */
+
+  const DEMO_SEED_ROWS = /** @type {DashRow[]} */ ([
+    {
+      sessionId: 'sess_7k2xq9',
+      stage: 'Payment',
+      subs: 'SIM',
+      customer: 'A. Kumar',
+      status: 'live',
+      orderNo: null,
+      ts: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
+      details: {
+        substrate: 'SIM',
+        iccidProfile: '8925300000040000316',
+        numberType: 'Port-in',
+        phone: '0412 345 678',
+        portArn: 'ARN7788991122',
+        email: 'a.kumar@example.com.au',
+        firstName: 'Arun',
+        lastName: 'Kumar',
+        dob: '1991-03-15',
+        basePlan: '$39 5G Mobile Plan — 75GB',
+        msisdn: '0412 345 678',
+        paymentMasked: '4242 ···· 4242',
+        consentCis: true,
+        consentDd: false,
+      },
+    },
+    {
+      sessionId: 'sess_m4nqp1',
+      stage: 'Complete',
+      subs: 'eSIM',
+      customer: 'S. Okafor',
+      status: 'done',
+      orderNo: 'MVNO-ORD-882401',
+      ts: new Date(Date.now() - 26 * 60 * 1000).toISOString(),
+      details: {
+        substrate: 'eSIM',
+        iccidProfile: 'ESIM-PROFILE-DEMO-A7',
+        eid: '89049032031001450090000123456',
+        numberType: 'New number',
+        phone: '0493 281 442',
+        email: 's.okafor@demo.com.au',
+        firstName: 'Sade',
+        lastName: 'Okafor',
+        dob: '1994-11-22',
+        basePlan: '$59 5G Mobile Plan — 175GB',
+        msisdn: '0493 281 442',
+        paymentMasked: '5105 ···· 5100',
+        consentCis: true,
+        consentDd: true,
+      },
+    },
+  ]);
+
+  /** @type {DashRow[]} */
+  let dashRows = DEMO_SEED_ROWS.slice();
+
+  loadDashRowsFromStorage();
+  persistDashRows();
+
+  /** @type {'23' | '29' | '39' | '49' | '59'} */
+  let selectedPlanPrice = '39';
+
+  function syncPlanRadiosFromState() {
+    document.querySelectorAll('#plan-cards .plan-option').forEach((btn) => {
+      const p = btn.getAttribute('data-price');
+      const on = p === selectedPlanPrice;
+      btn.classList.toggle('selected', !!on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  }
+
+  /**
+   * @param {string} price
+   */
+  function selectRetailPlan(price) {
+    if (!(price in PREPAID_PLAN_SUMMARY)) return;
+    /** @type {'23' | '29' | '39' | '49' | '59'} */
+    selectedPlanPrice = /** @type {'23'|'29'|'39'|'49'|'59'} */ (price);
+    syncPlanRadiosFromState();
+    if (demoSessionRow) updateDashFromWizard();
+  }
+
+  let stepIdx = 0;
+  /** @type {null | DashRow} */
+  let demoRow = null;
+  let substrate = /** @type {'physical' | 'esim'} */ ('esim');
+  let numtype = /** @type {'new' | 'port'} */ ('new');
+  let demoGen = 0;
+  /** @type {null | DashRow} */
+  let demoSessionRow = null;
+  let demoRunning = false;
+
+  function buildSidebar() {
+    const ul = document.getElementById('step-list');
+    ul.innerHTML = '';
+    STEPS.forEach((s, i) => {
+      const li = document.createElement('li');
+      li.className = 'step-li';
+      li.dataset.index = String(i);
+
+      const b = document.createElement('span');
+      b.className = 'step-badge';
+      b.textContent = String(i + 1);
+
+      const tx = document.createElement('span');
+      tx.className = 'step-text';
+      tx.innerHTML = `<span class="t">${s.title}</span><span class="d">${s.desc}</span>`;
+
+      li.append(b, tx);
+      li.addEventListener('click', () => {
+        if (demoRunning) return;
+        goToStep(i);
+      });
+
+      ul.appendChild(li);
+    });
+  }
+
+  function paintSidebar() {
+    document.querySelectorAll('.step-li').forEach((el, i) => {
+      el.classList.toggle('active', i === stepIdx);
+      el.classList.toggle('done', i < stepIdx);
+      el.classList.toggle('locked', demoRunning && i !== stepIdx);
+    });
+    const st = STEPS[stepIdx];
+    document.getElementById('toolbar-title').textContent = st.title;
+  }
+
+  function showStage() {
+    const key = STEPS[stepIdx].key;
+    document.querySelectorAll('.stage').forEach((card) => {
+      const k = /** @type {HTMLElement} */ (card).dataset.stage;
+      /** @type {HTMLElement} */ (card).hidden = k !== key;
+    });
+
+    refreshIdentifierUI();
+    syncPlanRadiosFromState();
+
+    document.getElementById('btn-prev').disabled = stepIdx === 0 || demoRunning;
+    const atEnd = stepIdx === STEPS.length - 1;
+    document.getElementById('btn-next').textContent = atEnd ? 'Done' : 'Next';
+    document.getElementById('btn-next').disabled = demoRunning || atEnd;
+    paintSidebar();
+    updateDashFromWizard();
+  }
+
+  function refreshIdentifierUI() {
+    const title = document.getElementById('id-title');
+    const desc = document.getElementById('id-desc');
+    const lcd = document.getElementById('lbl-iccid');
+    const iccid = /** @type {HTMLInputElement} */ (document.getElementById('fld-iccid'));
+    const eidBlock = document.getElementById('esim-extra');
+    if (!title) return;
+
+    if (substrate === 'physical') {
+      title.textContent = 'SIM ICCID validation';
+      desc.textContent = 'We verify the ICCID printed on your SIM before activation.';
+      lcd.textContent = 'ICCID';
+      iccid.placeholder = '13 digits printed on SIM';
+      iccid.hidden = false;
+      eidBlock.hidden = true;
+    } else {
+      title.textContent = 'eSIM provisioning';
+      desc.textContent = 'Profile delivery after order acceptance — optionally capture handset EID for compatibility.';
+      lcd.textContent = 'Profile reference (demo)';
+      iccid.placeholder = 'ESIM-PROFILE-DEMO‑001';
+      iccid.hidden = false;
+      eidBlock.hidden = false;
+    }
+  }
+
+  function goToStep(i) {
+    stepIdx = Math.max(0, Math.min(STEPS.length - 1, i));
+    showStage();
+  }
+
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async function typeInto(el, text, pace = 18) {
+    if (!el) return;
+    el.value = '';
+    for (let j = 0; j <= text.length; j++) {
+      el.value = text.slice(0, j);
+      await sleep(j < text.length ? pace : 0);
+    }
+  }
+
+  function toggleSubstrateChip(val, row) {
+    row.querySelectorAll('.chip').forEach((ch) => {
+      const on = ch.getAttribute('data-val') === val;
+      ch.classList.toggle('on', on);
+      ch.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    substrate = val;
+    refreshIdentifierUI();
+  }
+
+  function toggleNumChip(val, row) {
+    row.querySelectorAll('.chip').forEach((ch) => {
+      const on = ch.getAttribute('data-val') === val;
+      ch.classList.toggle('on', on);
+      ch.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    numtype = val;
+    syncPortFields();
+  }
+
+  function syncPortFields() {
+    const arn = /** @type {HTMLInputElement} */ (document.getElementById('fld-arn'));
+    const port = numtype === 'port';
+    arn.disabled = !port;
+    if (!port) arn.value = '';
+  }
+
+  function ensureDemoSession() {
+    if (!demoSessionRow) {
+      const id = `sess_demo_${Math.random().toString(36).slice(2, 9)}`;
+      demoSessionRow = {
+        sessionId: id,
+        stage: STEPS[0].title,
+        subs: substrate === 'physical' ? 'SIM' : 'eSIM',
+        customer: '—',
+        status: /** @type {'live'} */ ('live'),
+        orderNo: null,
+        ts: new Date().toISOString(),
+        details: {},
+      };
+      dashRows = [demoSessionRow, ...dashRows.filter(r => r.sessionId !== demoSessionRow.sessionId)];
+    }
+  }
+
+  function buildWizardDetails() {
+    const iccidEl = /** @type {HTMLInputElement} */ (document.getElementById('fld-iccid'));
+    const eidEl = /** @type {HTMLInputElement} */ (document.getElementById('fld-eid'));
+    const numSel = /** @type {HTMLSelectElement} */ (document.getElementById('fld-number'));
+    const opt = numSel.selectedOptions[0];
+    let msisdn = '';
+    if (opt && opt.value) msisdn = opt.textContent.replace(/\s+/g, ' ').trim();
+
+    return {
+      substrate: substrate === 'physical' ? 'SIM' : 'eSIM',
+      iccidProfile: (iccidEl?.value || '').trim() || '—',
+      eid: (eidEl?.value || '').trim(),
+      numberType: numtype === 'port' ? 'Port-in' : 'New number',
+      phone: (/** @type {HTMLInputElement} */ (document.getElementById('fld-phone'))).value.trim(),
+      portArn: numtype === 'port'
+        ? (/** @type {HTMLInputElement} */ (document.getElementById('fld-arn'))).value.trim()
+        : '',
+      email: (/** @type {HTMLInputElement} */ (document.getElementById('fld-email'))).value.trim(),
+      firstName: (/** @type {HTMLInputElement} */ (document.getElementById('fld-first'))).value.trim(),
+      lastName: (/** @type {HTMLInputElement} */ (document.getElementById('fld-last'))).value.trim(),
+      dob: (/** @type {HTMLInputElement} */ (document.getElementById('fld-dob'))).value.trim(),
+      msisdn: msisdn || '—',
+      basePlan:
+        `[${selectedPlanPrice}] ${PREPAID_PLAN_SUMMARY[selectedPlanPrice]}`,
+      paymentMasked:
+        (/** @type {HTMLInputElement} */ (document.getElementById('fld-cc'))).value.trim() || '(not captured)',
+      consentCis: /** @type {HTMLInputElement} */ (document.getElementById('chk-cis')).checked,
+      consentDd: /** @type {HTMLInputElement} */ (document.getElementById('chk-dd')).checked,
+    };
+  }
+
+  function updateDashFromWizard(stOverride) {
+    if (!demoSessionRow) return;
+    const nm = substrate === 'physical' ? 'SIM' : 'eSIM';
+    demoSessionRow.subs = nm;
+    const first = /** @type {HTMLInputElement} */ (document.getElementById('fld-first')).value.trim();
+    const last = /** @type {HTMLInputElement} */ (document.getElementById('fld-last')).value.trim();
+    if (first || last) demoSessionRow.customer = `${first.charAt(0) || '?'}${last ? ' ' + last : ''}`;
+    demoSessionRow.stage = stOverride ?? STEPS[stepIdx].title;
+    demoSessionRow.ts = new Date().toISOString();
+    if (demoSessionRow.status !== 'draft') demoSessionRow.status = 'live';
+    demoSessionRow.details = buildWizardDetails();
+    persistDashRows();
+  }
+
+  function finalizeDemoOrder(orderNo) {
+    if (!demoSessionRow) return;
+    demoSessionRow.orderNo = orderNo;
+    demoSessionRow.stage = 'Complete';
+    demoSessionRow.status = 'done';
+    demoSessionRow.ts = new Date().toISOString();
+    demoSessionRow.details = buildWizardDetails();
+    persistDashRows();
+  }
+
+  async function runDemoActivation() {
+    const gen = ++demoGen;
+    demoRunning = true;
+    const status = /** @type {HTMLElement} */ (document.getElementById('demo-status'));
+    status.classList.add('run');
+    dashRows = dashRows.filter(r => !String(r.sessionId).startsWith('sess_demo_'));
+    persistDashRows();
+    demoSessionRow = null;
+    /** @type {HTMLButtonElement} */ (document.getElementById('btn-demo-run')).disabled = true;
+    resetFormFields(false);
+
+    /** @returns {Promise<boolean>} */
+    const alive = async () => gen === demoGen;
+
+    goToStep(0);
+    ensureDemoSession();
+    status.textContent = 'Demo: onboarding…';
+
+    await sleep(900); if (!(await alive())) return false;
+
+    goToStep(1);
+    status.textContent = 'Demo: pick prepaid tier…';
+    await sleep(500); if (!(await alive())) return false;
+    selectRetailPlan('23');
+    await sleep(480); if (!(await alive())) return false;
+    selectRetailPlan('39');
+    await sleep(460); if (!(await alive())) return false;
+    selectRetailPlan('59');
+    await sleep(480); if (!(await alive())) return false;
+
+    goToStep(2);
+    substrate = 'esim';
+    toggleSubstrateChip('esim', document.getElementById('substrate-row'));
+    await sleep(500); if (!(await alive())) return false;
+    toggleSubstrateChip('physical', document.getElementById('substrate-row'));
+    refreshIdentifierUI();
+    await sleep(600); if (!(await alive())) return false;
+    goToStep(3);
+    await typeInto(document.getElementById('fld-iccid'), '892530000004000031612571'); if (!(await alive())) return false;
+    await sleep(400); if (!(await alive())) return false;
+    substrate = 'esim';
+    goToStep(2);
+    toggleSubstrateChip('esim', document.getElementById('substrate-row'));
+    refreshIdentifierUI();
+    await sleep(400); if (!(await alive())) return false;
+    goToStep(3);
+    await typeInto(document.getElementById('fld-iccid'), 'ESIM‑PROFILE‑DEMO‑A7');
+    await sleep(280);
+    await typeInto(document.getElementById('fld-eid'), '8904903203100145009000012345678');
+    if (!(await alive())) return false;
+    await sleep(500); if (!(await alive())) return false;
+
+    goToStep(4);
+    await sleep(280);
+    await typeInto(document.getElementById('fld-phone'), '0411882993');
+    if (!(await alive())) return false;
+    toggleNumChip('new', document.getElementById('numtype-row'));
+    await sleep(400); if (!(await alive())) return false;
+    toggleNumChip('port', document.getElementById('numtype-row'));
+    await sleep(520);
+    await typeInto(document.getElementById('fld-arn'), 'ARN9988776655');
+    if (!(await alive())) return false;
+    await sleep(500);
+    toggleNumChip('new', document.getElementById('numtype-row'));
+
+    await sleep(400); if (!(await alive())) return false;
+
+    goToStep(5);
+    status.textContent = 'Demo: account creation…';
+    await typeInto(document.getElementById('fld-first'), 'Jordan'); if (!(await alive())) return false;
+    await typeInto(document.getElementById('fld-last'), 'Chen'); if (!(await alive())) return false;
+    await typeInto(document.getElementById('fld-email'), 'jordan.chen@mymvnodemo.au'); if (!(await alive())) return false;
+    await typeInto(document.getElementById('fld-dob'), '1998-06-02'); if (!(await alive())) return false;
+    demoSessionRow.customer = 'J Chen';
+
+    await sleep(400); if (!(await alive())) return false;
+
+    goToStep(6);
+    const sel = /** @type {HTMLSelectElement} */ (document.getElementById('fld-number'));
+    for (let o = 0; o <= 2; o++) {
+      sel.selectedIndex = o;
+      sel.dispatchEvent(new Event('change'));
+      await sleep(220);
+      if (!(await alive())) return false;
+    }
+    await sleep(300); if (!(await alive())) return false;
+
+    goToStep(7);
+    status.textContent = 'Demo: Quickstream simulation…';
+    await typeInto(document.getElementById('fld-cc'), '4242 · 4242 · 4242 · 4242', 28);
+    await typeInto(document.getElementById('fld-exp'), '08 / 28');
+    await typeInto(document.getElementById('fld-cvv'), '•••');
+    await typeInto(document.getElementById('fld-cardname'), 'Jordan Chen');
+    if (!(await alive())) return false;
+    await sleep(500); if (!(await alive())) return false;
+
+    goToStep(8);
+    status.textContent = 'Demo: consent & signature…';
+    /** @type {HTMLInputElement} */
+    document.getElementById('chk-cis').checked = true;
+    await sleep(380);
+    document.getElementById('chk-dd').checked = true;
+    const line = /** @type {HTMLElement} */ (document.getElementById('sig-line'));
+    line.style.top = `${45 + Math.random() * 20}%`;
+    line.style.left = '10%';
+    line.classList.remove('draw');
+    void line.offsetWidth;
+    line.classList.add('draw');
+    await sleep(2200); if (!(await alive())) return false;
+
+    status.textContent = 'Demo: placing order → dashboard…';
+
+    await sleep(500); if (!(await alive())) return false;
+    goToStep(9);
+    const ord = `MVNO-ORD-${String(Math.floor(Math.random()*900000)+100000)}`;
+    document.getElementById('order-id-display').textContent = ord;
+    const actStatus = document.getElementById('activation-status');
+    actStatus.className = 'activation-status pending';
+    actStatus.innerHTML = '<span class="pulse"></span>Pending Activation';
+    finalizeDemoOrder(ord);
+    substrate = /** @type {'physical'|'esim'} */ ('esim');
+
+    setTimeout(() => {
+      actStatus.className = 'activation-status active';
+      actStatus.innerHTML = '<span class="pulse"></span>Active';
+    }, 3000);
+
+    demoRunning = false;
+    /** @type {HTMLButtonElement} */
+    document.getElementById('btn-demo-run').disabled = false;
+    status.textContent = 'Demo complete · activation dashboard opened in a new browser tab.';
+    setTimeout(() => { status.classList.remove('run'); status.textContent = 'Interactive demo — jump between steps anytime.'; }, 5000);
+
+    const sid = demoSessionRow?.sessionId;
+    if (sid) openDashboardTab(sid);
+    return true;
+  }
+
+  function resetFormFields(clearBenchSessions = true) {
+    [
+      ['fld-iccid', ''], ['fld-eid', ''], ['fld-phone', ''], ['fld-arn', ''],
+      ['fld-first', ''], ['fld-last', ''], ['fld-email', ''], ['fld-dob', ''],
+      ['fld-cc', ''], ['fld-exp', ''], ['fld-cvv', ''], ['fld-cardname', ''],
+    ].forEach(([id, val]) => {
+      const el = /** @type {HTMLInputElement} */ (document.getElementById(id));
+      if (el) el.value = /** @type {string} */ (val);
+    });
+    /** @type {HTMLInputElement} */ (document.getElementById('chk-cis')).checked = false;
+    /** @type {HTMLInputElement} */ (document.getElementById('chk-dd')).checked = false;
+    const line = /** @type {HTMLElement} */ (document.getElementById('sig-line'));
+    line.classList.remove('draw');
+
+    /** @type {HTMLSelectElement} */ (document.getElementById('fld-number')).selectedIndex = 0;
+
+    substrate = /** @type {'physical'|'esim'} */ ('esim');
+    numtype = /** @type {'new'|'port'} */ ('new');
+    toggleSubstrateChip('esim', document.getElementById('substrate-row'));
+    toggleNumChip('new', document.getElementById('numtype-row'));
+    selectedPlanPrice = '39';
+    syncPlanRadiosFromState();
+
+    const actStatusReset = document.getElementById('activation-status');
+    if (actStatusReset) {
+      actStatusReset.className = 'activation-status pending';
+      actStatusReset.innerHTML = '<span class="pulse"></span>Pending Activation';
+    }
+    demoSessionRow = null;
+    if (clearBenchSessions) {
+      dashRows = dashRows.filter(r => !String(r.sessionId).startsWith('sess_demo_'));
+    }
+    goToStep(0);
+    persistDashRows();
+  }
+  buildSidebar();
+
+  document.getElementById('substrate-row').addEventListener('click', (e) => {
+    const chip = /** @type {HTMLElement} */ ((e.target).closest('.chip'));
+    if (!chip || demoRunning) return;
+    toggleSubstrateChip(/** @type {'physical'|'esim'} */ (chip.dataset.val), document.getElementById('substrate-row'));
+    ensureDemoSession();
+    updateDashFromWizard();
+    refreshIdentifierUI();
+  });
+
+  document.getElementById('numtype-row').addEventListener('click', (e) => {
+    const chip = /** @type {HTMLElement} */ ((e.target).closest('.chip'));
+    if (!chip || demoRunning) return;
+    toggleNumChip(/** @type {'new'|'port'} */ (chip.dataset.val), document.getElementById('numtype-row'));
+    syncPortFields();
+    ensureDemoSession();
+    updateDashFromWizard();
+  });
+
+  ['fld-iccid', 'fld-eid', 'fld-phone', 'fld-arn', 'fld-first', 'fld-last',
+   'fld-email', 'fld-dob', 'fld-cc', 'fld-exp', 'fld-cvv', 'fld-cardname',
+  ].forEach((id) => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      if (demoRunning) return;
+      ensureDemoSession();
+      updateDashFromWizard();
+    });
+  });
+
+  document.getElementById('fld-number')?.addEventListener('change', () => {
+    if (demoRunning) return;
+    ensureDemoSession();
+    updateDashFromWizard();
+  });
+
+  ['chk-cis', 'chk-dd'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('change', () => {
+      if (demoRunning) return;
+      ensureDemoSession();
+      updateDashFromWizard();
+    });
+  });
+
+  document.getElementById('plan-cards').addEventListener('click', (e) => {
+    const btn = /** @type {HTMLElement} */ ((e.target).closest('.plan-option'));
+    if (!btn || demoRunning) return;
+    const p = btn.getAttribute('data-price');
+    if (!p || !(p in PREPAID_PLAN_SUMMARY)) return;
+    ensureDemoSession();
+    selectRetailPlan(p);
+  });
+
+  document.getElementById('btn-prev').onclick = () => {
+    goToStep(stepIdx - 1);
+  };
+
+  document.getElementById('btn-next').onclick = () => {
+    if (demoRunning || stepIdx >= STEPS.length - 1) return;
+    goToStep(stepIdx + 1);
+  };
+
+  document.getElementById('btn-reset').onclick = () => {
+    demoGen++;
+    demoRunning = false;
+    document.getElementById('demo-status').textContent = 'Interactive demo — jump between steps anytime.';
+    document.getElementById('demo-status').classList.remove('run');
+    document.querySelector('#btn-demo-run').disabled = false;
+    resetFormFields();
+    document.querySelector('#btn-demo-run').blur();
+  };
+
+  document.getElementById('btn-demo-run').onclick = async () => {
+    if (demoRunning) return;
+    await runDemoActivation();
+  };
+
+  document.getElementById('btn-dash-quick').onclick = () => openDashboardTab();
+
+  syncPortFields();
+  showStage();
+
+  console.info('[MyMVNO demo]', 'Standalone UI — replace with Live API URLs for production staging.');
+})();
+  </script>
+</body>
+</html>

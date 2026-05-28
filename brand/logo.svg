@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none" aria-label="MyMVNO">
+  <defs>
+    <linearGradient id="mvno-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00c9a7"/>
+      <stop offset="100%" stop-color="#5b6cff"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="40" height="40" rx="10" fill="url(#mvno-g)"/>
+  <path d="M10 26c3-5 7-7 10-7s7 2 10 7" stroke="#0c1222" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="20" cy="18" r="3" fill="#0c1222"/>
+  <path d="M20 21v12M16 30h8" stroke="#0c1222" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="52" y="32" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#0c1222">My</text>
+  <text x="82" y="32" font-family="system-ui, sans-serif" font-size="22" font-weight="500" fill="#3d4f6f">MVNO</text>
+</svg>

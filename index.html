@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyMVNO — Whitelabel Mobile Activation Platform (SIM &amp; eSIM)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050a18;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-glow: rgba(0,210,180,0.3);
+      --text: #f0f2f8;
+      --text-dim: #8892a8;
+      --text-muted: #5a6480;
+      --accent: #00d2b4;
+      --accent-2: #6c5ce7;
+      --accent-3: #0984e3;
+      --glow: rgba(0,210,180,0.12);
+      --glow-purple: rgba(108,92,231,0.15);
+      --sans: "Inter", system-ui, -apple-system, sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Utility ── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+    .fade-in { animation: fadeUp 0.8s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+    @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1rem 0;
+      background: rgba(5,10,24,0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display:flex; align-items:center; text-decoration:none; color:var(--text); }
+    .logo-name { font-size:1.15rem; font-weight:700; letter-spacing:-0.03em; }
+    .logo-name span { font-weight:400; color:var(--text-dim); }
+    .nav-links { display:flex; gap:2rem; align-items:center; }
+    .nav-links a { color:var(--text-dim); text-decoration:none; font-size:0.8125rem; font-weight:500; transition:color 0.2s; }
+    .nav-links a:hover { color:var(--accent); }
+    .nav-cta {
+      padding:0.5rem 1.1rem; border-radius:8px; font-weight:600; font-size:0.8125rem;
+      background:var(--accent); color:var(--bg); text-decoration:none; transition:all 0.2s;
+    }
+    .nav-cta:hover { box-shadow:0 0 24px var(--glow); transform:translateY(-1px); }
+    @media(max-width:640px) { .nav-links { display:none; } }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh; display:flex; align-items:center; position:relative;
+      padding: 8rem 0 6rem; overflow:hidden;
+    }
+    .hero-bg {
+      position:absolute; inset:0; z-index:0;
+    }
+    .hero-orb {
+      position:absolute; border-radius:50%; filter:blur(100px); opacity:0.5;
+    }
+    .hero-orb--1 {
+      width:600px; height:600px; top:-15%; right:-10%;
+      background:var(--accent-2); animation:float 8s ease-in-out infinite;
+    }
+    .hero-orb--2 {
+      width:500px; height:500px; bottom:-20%; left:-10%;
+      background:var(--accent); opacity:0.3; animation:float 10s ease-in-out infinite 2s;
+    }
+    .hero-orb--3 {
+      width:350px; height:350px; top:30%; left:40%;
+      background:var(--accent-3); opacity:0.15; animation:float 12s ease-in-out infinite 4s;
+    }
+    .hero-grid {
+      position:absolute; inset:0; z-index:1;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+    }
+    .hero-content { position:relative; z-index:2; }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      padding:0.4rem 1rem; border-radius:100px; font-size:0.75rem; font-weight:600;
+      text-transform:uppercase; letter-spacing:0.08em;
+      background:rgba(0,210,180,0.1); border:1px solid rgba(0,210,180,0.25);
+      color:var(--accent); margin-bottom:1.75rem;
+    }
+    .hero-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 2s infinite; }
+    .hero h1 {
+      font-family:var(--serif); font-size:clamp(2.8rem, 6.5vw, 5.5rem);
+      font-weight:400; line-height:1.05; letter-spacing:-0.03em;
+      max-width:14ch; margin-bottom:1.5rem;
+    }
+    .hero h1 em { font-style:italic; color:var(--accent); }
+    .hero-sub {
+      font-size:1.2rem; color:var(--text-dim); max-width:48ch;
+      margin-bottom:2.5rem; line-height:1.65;
+    }
+    .hero-actions { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:0.6rem;
+      padding:0.85rem 1.75rem; border-radius:10px; font-size:0.9rem; font-weight:600;
+      text-decoration:none; transition:all 0.25s; cursor:pointer; border:none;
+    }
+    .btn--primary {
+      background:var(--accent); color:var(--bg);
+      box-shadow: 0 0 0 0 var(--glow), 0 4px 20px rgba(0,210,180,0.3);
+    }
+    .btn--primary:hover { box-shadow:0 0 40px var(--glow), 0 8px 30px rgba(0,210,180,0.4); transform:translateY(-2px); }
+    .btn--outline {
+      background:transparent; color:var(--text); border:1px solid var(--border);
+    }
+    .btn--outline:hover { border-color:var(--accent); color:var(--accent); }
+    .btn svg { width:16px; height:16px; }
+
+    .hero-stats {
+      display:flex; gap:3rem; margin-top:4rem; padding-top:2.5rem;
+      border-top:1px solid var(--border);
+    }
+    .stat-value { font-size:2.25rem; font-weight:800; letter-spacing:-0.04em; line-height:1; }
+    .stat-value .accent { color:var(--accent); }
+    .stat-label { font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:500; }
+    @media(max-width:640px) { .hero-stats { gap:1.5rem; flex-wrap:wrap; } }
+
+    /* ── Section common ── */
+    .section { padding:6rem 0; position:relative; }
+    .section--alt { background: rgba(255,255,255,0.015); }
+    .section-eyebrow {
+      font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.15em;
+      color:var(--accent); margin-bottom:0.75rem;
+    }
+    .section-title {
+      font-family:var(--serif); font-size:clamp(1.75rem, 3.5vw, 2.75rem);
+      font-weight:400; letter-spacing:-0.02em; line-height:1.15; margin-bottom:1rem;
+    }
+    .section-title em { font-style:italic; color:var(--accent); }
+    .section-desc { font-size:1.05rem; color:var(--text-dim); max-width:55ch; margin-bottom:2.5rem; }
+
+    /* ── Wizard flow visual ── */
+    .wizard-flow {
+      display:grid; gap:0; margin-top:2rem; position:relative;
+    }
+    .wizard-step {
+      display:grid; grid-template-columns:60px 1fr; gap:0; position:relative;
+    }
+    .wizard-num {
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .wizard-circle {
+      width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:0.8rem; font-weight:700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:var(--bg); flex-shrink:0; position:relative; z-index:2;
+    }
+    .wizard-line {
+      width:2px; flex:1; background:linear-gradient(to bottom, var(--accent), var(--border));
+      margin:0 auto;
+    }
+    .wizard-step:last-child .wizard-line { display:none; }
+    .wizard-body {
+      padding:0.25rem 0 2.5rem 0;
+    }
+    .wizard-body h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.3rem; }
+    .wizard-body p { font-size:0.85rem; color:var(--text-dim); margin:0; line-height:1.55; }
+
+    /* ── Glass card grid ── */
+    .card-grid { display:grid; gap:1.25rem; }
+    .card-grid--2 { grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); }
+    .card-grid--3 { grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
+
+    .glass {
+      background:var(--bg-card); border:1px solid var(--border); border-radius:16px;
+      padding:1.75rem; position:relative; overflow:hidden; transition:all 0.35s ease;
+    }
+    .glass:hover {
+      background:var(--bg-card-hover); border-color:var(--border-glow);
+      transform:translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,210,180,0.08);
+    }
+    .glass::before {
+      content:""; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity:0; transition:opacity 0.35s;
+    }
+    .glass:hover::before { opacity:0.5; }
+
+    .glass-icon {
+      width:44px; height:44px; border-radius:12px; margin-bottom:1rem;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.25rem; line-height:1;
+    }
+    .glass-icon--green { background:rgba(0,210,180,0.12); color:var(--accent); }
+    .glass-icon--purple { background:rgba(108,92,231,0.12); color:var(--accent-2); }
+    .glass-icon--blue { background:rgba(9,132,227,0.12); color:var(--accent-3); }
+    .glass h4 { font-size:1rem; font-weight:700; margin-bottom:0.4rem; }
+    .glass p { font-size:0.875rem; color:var(--text-dim); margin:0; line-height:1.55; }
+
+    /* ── Tech stack ── */
+    .stack-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-top:2rem; }
+    .stack-item {
+      display:flex; align-items:flex-start; gap:1rem;
+      padding:1.25rem; border-radius:14px;
+      background:var(--bg-card); border:1px solid var(--border);
+      transition:border-color 0.3s;
+    }
+    .stack-item:hover { border-color:rgba(255,255,255,0.15); }
+    .stack-dot {
+      width:10px; height:10px; border-radius:50%; margin-top:5px; flex-shrink:0;
+    }
+    .stack-item h5 { font-size:0.85rem; font-weight:700; margin-bottom:0.2rem; }
+    .stack-item p { font-size:0.78rem; color:var(--text-muted); margin:0; }
+    .stack-item .stack-tech { font-size:0.72rem; color:var(--text-dim); margin-top:0.3rem; font-weight:500; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      margin-top:2.5rem; padding:2rem; border-radius:16px;
+      background: linear-gradient(135deg, rgba(0,210,180,0.04), rgba(108,92,231,0.04));
+      border:1px solid var(--border); position:relative; overflow:hidden;
+    }
+    .arch::before {
+      content:""; position:absolute; top:-50%; right:-30%; width:60%; height:200%;
+      background:radial-gradient(ellipse, rgba(108,92,231,0.06), transparent 60%);
+      pointer-events:none;
+    }
+    .arch pre {
+      font-family: "SF Mono", ui-monospace, monospace; font-size:0.75rem;
+      line-height:1.7; color:var(--text-dim); position:relative; z-index:1;
+      overflow-x:auto; white-space:pre;
+    }
+    .arch .hl { color:var(--accent); font-weight:600; }
+    .arch .hl2 { color:#a5b4fc; font-weight:600; }
+    .arch .dim { color:var(--text-muted); }
+
+    /* ── Pricing ── */
+    .pricing-card {
+      margin-top:2rem; border-radius:20px; overflow:hidden; position:relative;
+      background: linear-gradient(145deg, #0a1628 0%, #0d1f35 50%, #091520 100%);
+      border:1px solid rgba(0,210,180,0.15);
+    }
+    .pricing-card::before {
+      content:""; position:absolute; inset:-1px; border-radius:21px; padding:1px; z-index:0;
+      background:linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude; -webkit-mask-composite: xor;
+      opacity:0.3;
+    }
+    .pricing-inner { position:relative; z-index:1; padding:2.5rem; }
+    .pricing-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:1.5rem; margin-bottom:2rem; }
+    .pricing-amount { font-family:var(--serif); font-size:clamp(3rem,6vw,4.5rem); font-weight:400; line-height:1; letter-spacing:-0.03em; }
+    .pricing-amount .currency { font-size:0.5em; vertical-align:top; color:var(--accent); font-family:var(--sans); font-weight:700; }
+    .pricing-amount .period { display:block; font-family:var(--sans); font-size:0.95rem; font-weight:400; color:var(--text-dim); margin-top:0.35rem; }
+    .pricing-badge-wrap { text-align:right; }
+    .pricing-tier {
+      display:inline-block; padding:0.4rem 0.9rem; border-radius:100px; font-size:0.7rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.08em;
+      background:rgba(0,210,180,0.1); border:1px solid rgba(0,210,180,0.2); color:var(--accent);
+    }
+    .pricing-note { font-size:0.85rem; color:var(--text-dim); max-width:36ch; margin-top:0.5rem; }
+
+    .pricing-divider { height:1px; background:var(--border); margin:0 0 2rem; }
+
+    .pricing-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+    @media(max-width:640px) { .pricing-grid { grid-template-columns:1fr; } }
+    .pricing-col h4 { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); margin-bottom:1rem; }
+
+    .check-list { list-style:none; margin:0; padding:0; }
+    .check-list li {
+      padding:0.45rem 0 0.45rem 1.75rem; font-size:0.875rem; color:var(--text-dim);
+      position:relative; border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .check-list li:last-child { border:none; }
+    .check-list li::before {
+      content:""; position:absolute; left:0; top:0.7rem;
+      width:16px; height:16px; border-radius:50%;
+      background:rgba(0,210,180,0.15);
+      border:1.5px solid var(--accent);
+    }
+    .check-list li::after {
+      content:""; position:absolute; left:4px; top:calc(0.7rem + 4px);
+      width:8px; height:4px; border-left:2px solid var(--accent); border-bottom:2px solid var(--accent);
+      transform:rotate(-45deg);
+    }
+    .exclude-list { list-style:none; margin:0; padding:0; }
+    .exclude-list li {
+      padding:0.45rem 0 0.45rem 1.75rem; font-size:0.85rem; color:var(--text-muted);
+      position:relative; border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .exclude-list li:last-child { border:none; }
+    .exclude-list li::before {
+      content:""; position:absolute; left:3px; top:calc(0.7rem + 3px);
+      width:10px; height:10px;
+      border:1.5px solid var(--text-muted); border-radius:50%;
+    }
+
+    /* ── Timeline ── */
+    .timeline { margin-top:2rem; }
+    .tl-row {
+      display:grid; grid-template-columns:auto 1fr; gap:1.5rem; padding-bottom:1.5rem;
+      position:relative;
+    }
+    .tl-marker {
+      width:48px; text-align:center;
+    }
+    .tl-tag {
+      display:inline-block; padding:0.3rem 0.6rem; border-radius:6px; font-size:0.7rem; font-weight:700;
+      background:rgba(0,210,180,0.1); color:var(--accent); text-transform:uppercase; letter-spacing:0.05em;
+    }
+    .tl-content h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.25rem; }
+    .tl-content p { font-size:0.85rem; color:var(--text-dim); margin:0; }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding:6rem 0; text-align:center; position:relative; overflow:hidden;
+    }
+    .cta-section::before {
+      content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      width:600px; height:600px; border-radius:50%;
+      background:radial-gradient(circle, var(--glow), transparent 70%);
+      pointer-events:none;
+    }
+    .cta-section .section-title { margin:0 auto 1rem; }
+    .cta-section .section-desc { margin:0 auto 2rem; text-align:center; }
+
+    /* ── Footer ── */
+    footer {
+      padding:2.5rem 0; border-top:1px solid var(--border);
+      text-align:center; font-size:0.78rem; color:var(--text-muted);
+    }
+    footer .logo-name { display:block; font-size:1rem; margin-bottom:0.5rem; color:var(--text-dim); }
+    footer p { margin-top:0.25rem; }
+
+    /* ── Responsive polish ── */
+    @media(max-width:768px) {
+      .hero { padding:7rem 0 3rem; min-height:auto; }
+      .hero-stats { gap:1.5rem; }
+      .section { padding:3.5rem 0; }
+    }
+
+    @media print {
+      body { background:#fff; color:#000; }
+      nav, .hero-bg, .btn, .cta-section::before { display:none; }
+      .glass, .stack-item, .pricing-card, .arch { border-color:#ddd; background:#fafafa; }
+      .section-eyebrow, .glass-icon, .wizard-circle { color:#333; }
+      .hero { min-height:auto; padding:2rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="#"><span class="logo-name">My<span>MVNO</span></span></a>
+    <div class="nav-links">
+      <a href="#platform">Platform</a>
+      <a href="#features">Features</a>
+      <a href="#tech">Tech</a>
+      <a href="#pricing">Pricing</a>
+      <a class="nav-cta" href="#start">Get started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-orb hero-orb--1"></div>
+    <div class="hero-orb hero-orb--2"></div>
+    <div class="hero-orb hero-orb--3"></div>
+    <div class="hero-grid"></div>
+  </div>
+  <div class="container hero-content fade-in">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Whitelabel platform &middot; SIM &amp; eSIM &middot; Production-proven
+    </div>
+    <h1>Launch your <em>mobile brand</em> without the build</h1>
+    <p class="hero-sub">
+      A complete subscriber activation platform for <strong>SIM and digital eSIM</strong> — your brand, your domain, your customers.
+      Forked from production infrastructure already processing real activations in Australia.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn--primary" href="#pricing">
+        See pricing
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn--outline" href="#platform">Explore the platform</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-value">9<span class="accent">-step</span></div>
+        <div class="stat-label">Activation wizard</div>
+      </div>
+      <div>
+        <div class="stat-value"><span class="accent">SIM</span>+<span class="accent">eSIM</span></div>
+        <div class="stat-label">Both substrates supported</div>
+      </div>
+      <div>
+        <div class="stat-value"><span class="accent">0</span> build</div>
+        <div class="stat-label">Risk — proven stack</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PLATFORM OVERVIEW ═══ -->
+<section class="section" id="platform">
+  <div class="container">
+    <p class="section-eyebrow">The platform</p>
+    <h2 class="section-title">Everything your MVNO needs to <em>activate customers</em></h2>
+    <p class="section-desc">
+      MyMVNO gives you a customer-facing activation wizard for <strong>SIM and eSIM</strong>, a backend API integrated with Australia's leading telco BSS,
+      secure payment processing, and operational dashboards — all under your brand.
+    </p>
+
+    <div class="card-grid card-grid--3">
+      <div class="glass">
+        <div class="glass-icon glass-icon--green">&#9678;</div>
+        <h4>Built for MVNOs</h4>
+        <p>Niche telcos, community mobile brands, B2B resellers, and anyone commercialising connectivity as part of a bigger play.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--blue">&#9635;</div>
+        <h4>SIM &amp; eSIM in one funnel</h4>
+        <p>SIM (ICCID / serial validation) and digital eSIM (profile provisioning aligned with carrier Octane workflows, including QR / install handoff where configured).</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--purple">&#8599;</div>
+        <h4>Fully yours</h4>
+        <p>Forked codebase. Your domain. Your brand. Your carrier credentials. No shared tenancy or co-branding. You own it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ACTIVATION WIZARD ═══ -->
+<section class="section section--alt" id="features">
+  <div class="container">
+    <p class="section-eyebrow">Customer experience</p>
+    <h2 class="section-title">A 9-step wizard that <em>just works</em></h2>
+    <p class="section-desc">
+      Guided activation from substrate to live service — <strong>SIM</strong> or <strong>eSIM</strong> — handling new numbers, porting, payments, identity verification, and consent.
+    </p>
+
+    <div class="wizard-flow">
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">1</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Welcome</h4>
+          <p>Branded landing page with your logo, copy, and link to your Critical Information Summary.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">2</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>SIM &amp; eSIM</h4>
+          <p>Customers activate on <strong>SIM</strong> (validated ICCID against carrier inventory) or <strong>eSIM</strong> (digital profile path per your Octane/carrier setup). Backend supports QR-generation hooks for profile delivery where configured.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">3</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Number type</h4>
+          <p>Customer chooses a new number or ports their existing one (prepaid or postpaid).</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">4</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Account details</h4>
+          <p>Full registration — name, DOB (18+ check), email, phone, Australian address, optional ABN for business.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">5</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Plan selection</h4>
+          <p>Configurable upsell paths — e.g. international calling bolt-ons, data packs, premium tiers.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">6</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Number selection</h4>
+          <p>New path: pick from available numbers. Port path: enter details, verify ownership via OTP.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">7</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Payment</h4>
+          <p>Credit card or direct debit via Quickstream/Westpac trusted iframe. Tokenised. PCI-scoped.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">8</div><div class="wizard-line"></div></div>
+        <div class="wizard-body">
+          <h4>Consent</h4>
+          <p>T&amp;C acknowledgement, porting authority, direct debit authorisation — plus a digital signature.</p>
+        </div>
+      </div>
+      <div class="wizard-step">
+        <div class="wizard-num"><div class="wizard-circle">9</div></div>
+        <div class="wizard-body">
+          <h4>Confirmation</h4>
+          <p>Order submitted. Success screen with order ID, activation timeline, billing info, and FAQ accordion — plus eSIM QR or install prompts when applicable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ OPS & INTELLIGENCE ═══ -->
+<section class="section">
+  <div class="container">
+    <p class="section-eyebrow">Operations</p>
+    <h2 class="section-title">Beyond the <em>front door</em></h2>
+    <p class="section-desc">The platform doesn't stop at activation. Dashboards, analytics, and post-order automation are built in.</p>
+
+    <div class="card-grid card-grid--3">
+      <div class="glass">
+        <div class="glass-icon glass-icon--green">&#9632;</div>
+        <h4>Activation dashboard</h4>
+        <p>Pipeline view of in-progress and completed activations. Supabase-backed real-time progress tracking.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--blue">&#9670;</div>
+        <h4>Session analytics</h4>
+        <p>Step-by-step funnel events via webhooks. See where customers drop off and take action.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--purple">&#9733;</div>
+        <h4>Post-activation automation</h4>
+        <p>Queue-driven welcome emails, ring-timer config, and Google Sheet updates after every successful order.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TECH STACK ═══ -->
+<section class="section section--alt" id="tech">
+  <div class="container">
+    <p class="section-eyebrow">Architecture</p>
+    <h2 class="section-title">Modern stack, <em>production-grade</em></h2>
+    <p class="section-desc">Not a prototype. This stack pattern is built for SIM and eSIM activations aligned with Telcoinabox Octane in Australia.</p>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-dot" style="background:var(--accent);"></div>
+        <div>
+          <h5>Frontend</h5>
+          <p>Activation wizard SPA, hosted on Vercel</p>
+          <div class="stack-tech">React 18 &middot; Vite 5 &middot; NextUI &middot; Tailwind CSS &middot; Framer Motion</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot" style="background:var(--accent-2);"></div>
+        <div>
+          <h5>Backend API</h5>
+          <p>Orchestration proxy to telco BSS</p>
+          <div class="stack-tech">Node.js &middot; Express 4 &middot; express-validator &middot; Winston</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot" style="background:var(--accent-3);"></div>
+        <div>
+          <h5>Carrier / BSS</h5>
+          <p>Customer, SIM &amp; eSIM profile, numbers, plans, orders</p>
+          <div class="stack-tech">Telcoinabox Octane (SOAP/REST proxy)</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot" style="background:#e17055;"></div>
+        <div>
+          <h5>Payments</h5>
+          <p>Tokenised card and bank account capture</p>
+          <div class="stack-tech">Quickstream (Westpac)</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot" style="background:#fdcb6e;"></div>
+        <div>
+          <h5>Queue &amp; Jobs</h5>
+          <p>Post-activation processing pipeline</p>
+          <div class="stack-tech">BullMQ &middot; Upstash Redis</div>
+        </div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-dot" style="background:#74b9ff;"></div>
+        <div>
+          <h5>Data &amp; Comms</h5>
+          <p>Progress store, webhooks, email</p>
+          <div class="stack-tech">Supabase &middot; Make.com &middot; SendGrid</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arch">
+      <pre><span class="hl">Customer</span> <span class="dim">──────►</span> <span class="hl2">activate.yourbrand.com.au</span> <span class="dim">(React SPA on Vercel)</span>
+                     <span class="dim">│</span>
+                     <span class="dim">▼ HTTPS</span>
+              <span class="hl2">Your API</span> <span class="dim">(Express / Node.js)</span>
+                     <span class="dim">│</span>
+         <span class="dim">┌──────────┼──────────┬──────────┐</span>
+         <span class="dim">▼</span>          <span class="dim">▼</span>          <span class="dim">▼</span>          <span class="dim">▼</span>
+    <span class="hl">Octane BSS</span>  <span class="hl">Quickstream</span>  <span class="hl">SendGrid</span>   <span class="hl">Redis Queue</span>
+    <span class="dim">SIM + eSIM, numbers,</span>  <span class="dim">payments</span>      <span class="dim">email</span>        <span class="dim">│</span>
+    <span class="dim">plans, orders</span>                                              <span class="dim">▼</span>
+                                        <span class="hl">Worker</span>
+                                     <span class="dim">welcome email</span>
+                                     <span class="dim">ring timer</span>
+                                     <span class="dim">sheet sync</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BENEFITS ═══ -->
+<section class="section" id="benefits">
+  <div class="container">
+    <p class="section-eyebrow">Why MyMVNO</p>
+    <h2 class="section-title">Skip the hard parts, <em>keep the control</em></h2>
+
+    <div class="card-grid card-grid--3" style="margin-top:2rem;">
+      <div class="glass">
+        <div class="glass-icon glass-icon--green">&#9889;</div>
+        <h4>Speed to market</h4>
+        <p>Months of carrier integration for <strong>SIM and eSIM</strong>, payment plumbing, and porting logic — patterns ready to wire for your substrates.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--purple">&#9881;</div>
+        <h4>Zero build risk</h4>
+        <p>Not a spec or a wireframe. Every screen, API call, and edge case has been tested with real customers.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--blue">&#9903;</div>
+        <h4>Total brand control</h4>
+        <p>Your logo, colours, copy, domain, legal pages. Customers never see another brand.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--green">&#9878;</div>
+        <h4>Regulatory patterns</h4>
+        <p>CIS links, consent capture, porting authority, digital signature — aligned with Australian telco requirements.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--purple">&#9783;</div>
+        <h4>Self-managed</h4>
+        <p>You run your own deployments, credentials, and day-two changes. No lock-in. No dependency.</p>
+      </div>
+      <div class="glass">
+        <div class="glass-icon glass-icon--blue">&#128200;</div>
+        <h4>Full funnel visibility</h4>
+        <p>Step-level tracking, activation dashboards, and webhook analytics to see exactly where customers are.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ═══ -->
+<section class="section section--alt" id="pricing">
+  <div class="container">
+    <p class="section-eyebrow">Investment</p>
+    <h2 class="section-title">Predictable pricing, <em>no surprises</em></h2>
+    <p class="section-desc">
+      One monthly fee for the whitelabel licence and platform access. You pay infrastructure providers directly — full transparency, no markup.
+    </p>
+
+    <div class="pricing-card">
+      <div class="pricing-inner">
+        <div class="pricing-header">
+          <div>
+            <div class="pricing-amount">
+              <span class="currency">$</span>1,200
+              <span class="period">+ GST per month</span>
+            </div>
+          </div>
+          <div class="pricing-badge-wrap">
+            <span class="pricing-tier">Fully self-managed</span>
+            <p class="pricing-note">Carrier, payment, and hosting costs are separate — paid by you directly to each provider.</p>
+          </div>
+        </div>
+
+        <div class="pricing-divider"></div>
+
+        <div class="pricing-grid">
+          <div class="pricing-col">
+            <h4>Included</h4>
+            <ul class="check-list">
+              <li>Whitelabel activation wizard — <strong>SIM &amp; eSIM</strong> paths (full source)</li>
+              <li>Backend API codebase &amp; deployment guide</li>
+              <li>Brand implementation (palette, logo, copy)</li>
+              <li>Integration patterns (Octane, Quickstream)</li>
+              <li>Activation dashboard access pattern</li>
+              <li>Handover documentation &amp; onboarding session</li>
+              <li>Business-hours email support</li>
+            </ul>
+          </div>
+          <div class="pricing-col">
+            <h4>Your direct costs</h4>
+            <ul class="exclude-list">
+              <li>Telcoinabox / Octane BSS fees</li>
+              <li>Quickstream merchant &amp; transaction fees</li>
+              <li>Hosting (Vercel, backend, Redis, Supabase)</li>
+              <li>Domain, SSL, SendGrid, Make.com</li>
+              <li>Legal content (CIS, T&amp;Cs) for your brand</li>
+              <li>Custom development beyond whitelabel scope</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <h3 class="section-title" style="font-size:1.35rem; margin-top:3rem; margin-bottom:1.5rem;">Engagement timeline</h3>
+      <div class="tl-row">
+        <div class="tl-marker"><span class="tl-tag">M1</span></div>
+        <div class="tl-content">
+          <h4>Setup &amp; branding</h4>
+          <p>Fork provisioned. Brand kit applied — colours, logo, copy, legal links. Credentials wired. Staging environment live.</p>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-marker"><span class="tl-tag">M2+</span></div>
+        <div class="tl-content">
+          <h4>Production &amp; operations</h4>
+          <p>Cutover to production. Self-managed operations begin. Ad-hoc change requests quoted separately as needed.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section" id="start">
+  <div class="container" style="position:relative; z-index:1;">
+    <p class="section-eyebrow">Next steps</p>
+    <h2 class="section-title" style="max-width:16ch; margin-left:auto; margin-right:auto;">Ready to launch <em>your brand</em>?</h2>
+    <p class="section-desc" style="max-width:44ch;">
+      Share your logo, brand colours, domain preference, and carrier details — including whether you ship <strong>SIM only</strong>, <strong>eSIM only</strong>, or <strong>both</strong>. We'll provision your fork and schedule onboarding.
+    </p>
+    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+      <a class="btn btn--primary" href="mailto:contact@example.com?subject=MyMVNO%20Whitelabel%20Enquiry" style="font-size:1rem; padding:1rem 2.25rem;">
+        Request onboarding
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn" href="/demo/" style="font-size:1rem; padding:1rem 2.25rem; border:1px solid var(--border); color:var(--accent);">
+        Try the demo
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="container">
+    <span class="logo-name">My<span style="font-weight:400; color:var(--text-muted);">MVNO</span></span>
+    <p>Your mobile brand, ready to launch.</p>
+    <p style="margin-top:1rem;">Confidential. Pricing valid at date of issue &middot; May 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>
