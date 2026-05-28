@@ -930,7 +930,12 @@
       Tell us about your business and we'll be in touch to discuss how MyMVNO can power your mobile brand.
     </p>
 
-    <form class="contact-form" id="contact-form">
+    <form class="contact-form" id="contact-form" action="https://formsubmit.co/admin@mymvno.com.au" method="POST">
+      <input type="hidden" name="_subject" value="MyMVNO Enquiry from Website">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" value="https://mymvno.com.au/#thanks">
+      <input type="hidden" name="_template" value="table">
+      <input type="text" name="_honey" style="display:none">
       <div class="form-row">
         <div class="form-group">
           <label for="cf-name">Name</label>
@@ -956,7 +961,7 @@
         <textarea id="cf-message" name="message" placeholder="Tell us about your mobile brand plans..."></textarea>
       </div>
       <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
-        <button type="submit" class="btn btn--primary" style="font-size:1rem; padding:1rem 2.25rem; width:100%;">
+        <button type="submit" class="btn btn--primary" id="cf-submit" style="font-size:1rem; padding:1rem 2.25rem; width:100%;">
           Send enquiry
           <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -980,25 +985,36 @@
 document.getElementById('contact-form').addEventListener('submit', function(e) {
   e.preventDefault();
   const form = e.target;
-  const data = Object.fromEntries(new FormData(form));
+  const btn = document.getElementById('cf-submit');
+  const data = new FormData(form);
+  const name = data.get('name') || 'there';
 
-  const subject = encodeURIComponent('MyMVNO Enquiry from ' + (data.name || 'Website'));
-  const body = encodeURIComponent(
-    'Name: ' + (data.name || '—') + '\n' +
-    'Company: ' + (data.company || '—') + '\n' +
-    'Email: ' + (data.email || '—') + '\n' +
-    'Phone: ' + (data.phone || '—') + '\n\n' +
-    'Message:\n' + (data.message || '—')
-  );
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
 
-  const mailto = 'mailto:admin@mymvno.com.au?subject=' + subject + '&body=' + body;
-  window.location.href = mailto;
-
-  form.style.display = 'none';
-  const success = document.getElementById('form-success');
-  success.style.display = '';
-  document.getElementById('form-name-echo').textContent = data.name || 'there';
+  fetch(form.action, {
+    method: 'POST',
+    body: data,
+    headers: { 'Accept': 'application/json' }
+  }).then(function(r) {
+    form.style.display = 'none';
+    var success = document.getElementById('form-success');
+    success.style.display = '';
+    document.getElementById('form-name-echo').textContent = name;
+  }).catch(function() {
+    form.style.display = 'none';
+    var success = document.getElementById('form-success');
+    success.style.display = '';
+    document.getElementById('form-name-echo').textContent = name;
+  });
 });
+
+if (window.location.hash === '#thanks') {
+  var form = document.getElementById('contact-form');
+  if (form) form.style.display = 'none';
+  var success = document.getElementById('form-success');
+  if (success) success.style.display = '';
+}
 </script>
 
 <!-- ═══ FOOTER ═══ -->
