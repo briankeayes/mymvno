@@ -704,6 +704,10 @@
             <span class="order-id" id="order-id-display">MVNO‑ORD‑000000</span>
             <br>
             <span class="activation-status pending" id="activation-status"><span class="pulse"></span>Pending Activation</span>
+            <p class="hint" id="status-alert" style="margin-top:1rem;text-align:center;font-size:0.78rem;color:var(--text-muted);display:none;">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="vertical-align:-2px;margin-right:4px;"><path d="M2 4l6 4 6-4M2 4v8h12V4M2 4h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Status alert sent to <strong style="color:var(--text-dim);">contact@simplybig.com.au</strong>
+            </p>
           </div>
         </div>
       </div>
@@ -1184,9 +1188,12 @@
     finalizeDemoOrder(ord);
     substrate = /** @type {'physical'|'esim'} */ ('esim');
 
+    const alertEl = document.getElementById('status-alert');
+    alertEl.style.display = 'none';
     setTimeout(() => {
       actStatus.className = 'activation-status active';
       actStatus.innerHTML = '<span class="pulse"></span>Active';
+      alertEl.style.display = '';
     }, 3000);
 
     demoRunning = false;
@@ -1228,6 +1235,8 @@
       actStatusReset.className = 'activation-status pending';
       actStatusReset.innerHTML = '<span class="pulse"></span>Pending Activation';
     }
+    const alertReset = document.getElementById('status-alert');
+    if (alertReset) alertReset.style.display = 'none';
     demoSessionRow = null;
     if (clearBenchSessions) {
       dashRows = dashRows.filter(r => !String(r.sessionId).startsWith('sess_demo_'));
