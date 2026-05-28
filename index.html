@@ -399,6 +399,39 @@
     .cta-section .section-title { margin:0 auto 1rem; }
     .cta-section .section-desc { margin:0 auto 2rem; text-align:center; }
 
+    .contact-form {
+      max-width:480px; margin:0 auto; text-align:left;
+    }
+    .contact-form .form-group { margin-bottom:1rem; }
+    .contact-form label {
+      display:block; font-size:0.75rem; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.06em; color:var(--text-dim); margin-bottom:0.35rem;
+    }
+    .contact-form input,
+    .contact-form textarea {
+      width:100%; padding:0.7rem 0.9rem; border-radius:10px; font-size:0.9rem;
+      font-family:var(--sans); color:var(--text); border:1px solid var(--border);
+      background:rgba(255,255,255,0.04); transition:border-color 0.2s;
+    }
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(0,210,180,0.1);
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color:var(--text-muted); }
+    .contact-form textarea { resize:vertical; min-height:90px; }
+    .contact-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    @media(max-width:480px) { .contact-form .form-row { grid-template-columns:1fr; } }
+    .form-success {
+      text-align:center; padding:2rem 0;
+      animation:fadeUp 0.5s ease both;
+    }
+    .form-success .check-circle {
+      width:56px; height:56px; border-radius:50%; margin:0 auto 1rem;
+      background:rgba(0,214,143,0.15); display:flex; align-items:center; justify-content:center;
+    }
+
     /* ── Footer ── */
     footer {
       padding:2.5rem 0; border-top:1px solid var(--border);
@@ -891,23 +924,82 @@
 <!-- ═══ CTA ═══ -->
 <section class="cta-section" id="start">
   <div class="container" style="position:relative; z-index:1;">
-    <p class="section-eyebrow">Next steps</p>
+    <p class="section-eyebrow">Get in touch</p>
     <h2 class="section-title" style="max-width:16ch; margin-left:auto; margin-right:auto;">Ready to launch <em>your brand</em>?</h2>
     <p class="section-desc" style="max-width:44ch;">
-      Share your logo, brand colours, domain preference, and carrier details — including whether you ship <strong>SIM only</strong>, <strong>eSIM only</strong>, or <strong>both</strong>. We'll provision your fork and schedule onboarding.
+      Tell us about your business and we'll be in touch to discuss how MyMVNO can power your mobile brand.
     </p>
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <a class="btn btn--primary" href="mailto:contact@simplybig.com.au?subject=MyMVNO%20Whitelabel%20Enquiry" style="font-size:1rem; padding:1rem 2.25rem;">
-        Request onboarding
-        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
-      <a class="btn" href="/demo/" style="font-size:1rem; padding:1rem 2.25rem; border:1px solid var(--border); color:var(--accent);">
-        Try the demo
-        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
+
+    <form class="contact-form" id="contact-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-name">Name</label>
+          <input type="text" id="cf-name" name="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="cf-company">Company</label>
+          <input type="text" id="cf-company" name="company" placeholder="Your company">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cf-email">Email</label>
+          <input type="email" id="cf-email" name="email" placeholder="you@company.com" required>
+        </div>
+        <div class="form-group">
+          <label for="cf-phone">Phone</label>
+          <input type="tel" id="cf-phone" name="phone" placeholder="04xx xxx xxx">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="cf-message">Message</label>
+        <textarea id="cf-message" name="message" placeholder="Tell us about your mobile brand plans..."></textarea>
+      </div>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem;">
+        <button type="submit" class="btn btn--primary" style="font-size:1rem; padding:1rem 2.25rem; width:100%;">
+          Send enquiry
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <p style="text-align:center; margin-top:1rem;">
+        <a href="/demo/" style="font-size:0.85rem; color:var(--accent); text-decoration:none;">Or try the interactive demo first &rarr;</a>
+      </p>
+    </form>
+
+    <div class="form-success" id="form-success" style="display:none;">
+      <div class="check-circle">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><path d="M5 13l4 4L19 7" stroke="#00d68f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 style="font-family:var(--serif); font-size:1.5rem; margin-bottom:0.5rem;">Thanks, <span id="form-name-echo"></span></h3>
+      <p style="color:var(--text-dim); font-size:0.95rem;">We'll be in touch shortly at the email you provided.</p>
     </div>
   </div>
 </section>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form));
+
+  const subject = encodeURIComponent('MyMVNO Enquiry from ' + (data.name || 'Website'));
+  const body = encodeURIComponent(
+    'Name: ' + (data.name || '—') + '\n' +
+    'Company: ' + (data.company || '—') + '\n' +
+    'Email: ' + (data.email || '—') + '\n' +
+    'Phone: ' + (data.phone || '—') + '\n\n' +
+    'Message:\n' + (data.message || '—')
+  );
+
+  const mailto = 'mailto:admin@mymvno.com.au?subject=' + subject + '&body=' + body;
+  window.location.href = mailto;
+
+  form.style.display = 'none';
+  const success = document.getElementById('form-success');
+  success.style.display = '';
+  document.getElementById('form-name-echo').textContent = data.name || 'there';
+});
+</script>
 
 <!-- ═══ FOOTER ═══ -->
 <footer>
